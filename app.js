@@ -17,8 +17,8 @@ class BibleApp {
         this.translationUrls = {
             'kjv': 'https://skadigitalhub.github.io/NKJVBible/bible-kjv.json',
             'bbe': 'https://skadigitalhub.github.io/NKJVBible/bbe.json', // Placeholder - update with actual BBE URL
-            'amp': 'https://skadigitalhub.github.io/NKJVBible/amp.json',
-            'nlt': 'https://skadigitalhub.github.io/NKJVBible/nlt.json'
+            'amp': 'bbe.json',
+            'nlt': 'bible.json'
         };
         
         // Translation names
@@ -526,7 +526,7 @@ class BibleApp {
             return;
         }
         
-        results.slice(0, 20).forEach(result => {
+        results.slice(0, 200).forEach(result => {
             const resultItem = document.createElement('div');
             resultItem.className = 'search-result-item';
             resultItem.innerHTML = `
@@ -970,4 +970,5 @@ class BibleApp {
 document.addEventListener('DOMContentLoaded', () => {
     const app = new BibleApp();
     window.bibleApp = app; // For debugging
+
 });
