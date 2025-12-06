@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0 /">
     <title>Ska Bible Dictionary</title>
     <link rel="stylesheet" href="dictionary.css ">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -18,27 +18,47 @@
             </button>
         </div>
         
-        <div class="menu-section">
-            <h4><i class="fas fa-filter"></i> Filter by</h4>
-            <div class="filter-options">
-                <select id="filter-type" class="translation-select">
-                    <option value="all">All Terms</option>
-                    <option value="people">People</option>
-                    <option value="places">Places</option>
-                    <option value="concepts">Concepts</option>
-                    <option value="objects">Objects</option>
-                    <option value="events">Events</option>
-                </select>
-                
-                <select id="filter-alphabet" class="translation-select" style="margin-top: 10px;">
-                    <option value="all">All Letters</option>
-                    <option value="A">A</option>
-                    <option value="B">B</option>
-                    <option value="C">C</option>
-                    <!-- Add all letters A-Z -->
-                </select>
-            </div>
-        </div>
+        <!-- In your dictionary.html file, update the filter section: -->
+<div class="menu-section">
+    <h4><i class="fas fa-filter"></i> Filter by</h4>
+    <div class="filter-options">
+        <select id="filter-type" class="translation-select">
+            <option value="all">All Languages</option>
+            <option value="hebrew">Hebrew (Strong's H)</option>
+            <option value="greek">Greek (Strong's G)</option>
+        </select>
+        
+        <select id="filter-alphabet" class="translation-select" style="margin-top: 10px;">
+            <option value="all">All Letters</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+            <option value="E">E</option>
+            <option value="F">F</option>
+            <option value="G">G</option>
+            <option value="H">H</option>
+            <option value="I">I</option>
+            <option value="J">J</option>
+            <option value="K">K</option>
+            <option value="L">L</option>
+            <option value="M">M</option>
+            <option value="N">N</option>
+            <option value="O">O</option>
+            <option value="P">P</option>
+            <option value="Q">Q</option>
+            <option value="R">R</option>
+            <option value="S">S</option>
+            <option value="T">T</option>
+            <option value="U">U</option>
+            <option value="V">V</option>
+            <option value="W">W</option>
+            <option value="X">X</option>
+            <option value="Y">Y</option>
+            <option value="Z">Z</option>
+        </select>
+    </div>
+</div>
         
         <div class="menu-section">
             <h4><i class="fas fa-search"></i> Search Dictionary</h4>
@@ -97,33 +117,36 @@
                     <i class="far fa-star"></i>
                 </button>
             </div>
+            <!-- In the header or quick-nav area -->
+             <div class="language-stats">
+              <span class="hebrew-stat" id="hebrew-count">0</span> Hebrew • 
+               <span class="greek-stat" id="greek-count">0</span> Greek
+            </div>
         </header>
         
         <!-- Main Content -->
         <main>
-            <!-- Quick Filters -->
-            <div class="quick-nav">
-                <div class="nav-group">
-                    <label for="sort-select"><i class="fas fa-sort-alpha-down"></i> Sort by:</label>
-                    <select id="sort-select">
-                        <option value="name-asc">Name (A-Z)</option>
-                        <option value="name-desc">Name (Z-A)</option>
-                        <option value="relevance">Relevance</option>
-                        <option value="type">Type</option>
-                    </select>
-                </div>
-                
-                <div class="nav-group">
-                    <label><i class="fas fa-tags"></i> Quick Categories:</label>
-                    <div class="category-tags">
-                        <button class="category-tag" data-type="people">People</button>
-                        <button class="category-tag" data-type="places">Places</button>
-                        <button class="category-tag" data-type="concepts">Concepts</button>
-                        <button class="category-tag" data-type="objects">Objects</button>
-                        <button class="category-tag" data-type="events">Events</button>
-                    </div>
-                </div>
-            </div>
+<!-- Update the quick-nav section -->
+<div class="quick-nav">
+    <div class="nav-group">
+        <label for="sort-select"><i class="fas fa-sort-alpha-down"></i> Sort by:</label>
+        <select id="sort-select">
+            <option value="number-asc">Number (H1, G1...)</option>
+            <option value="name-asc">Name (A-Z)</option>
+            <option value="name-desc">Name (Z-A)</option>
+            <option value="language">Language (Hebrew first)</option>
+        </select>
+    </div>
+    
+    <div class="nav-group">
+        <label><i class="fas fa-language"></i> Quick Filters:</label>
+        <div class="category-tags">
+            <button class="category-tag active" data-type="all">All</button>
+            <button class="category-tag" data-type="hebrew">Hebrew</button>
+            <button class="category-tag" data-type="greek">Greek</button>
+        </div>
+    </div>
+</div>
             
             <!-- Dictionary Display -->
             <div class="dictionary-container">
@@ -228,7 +251,4 @@
     
     <script src="dictionary.js"></script>
 </body>
-
 </html>
-
-
