@@ -116,22 +116,26 @@ class BibleDictionary {
             console.log('Loading Hebrew XML...');
             const hebrewResponse = await fetch('strong_hebrew.xml');
             const hebrewText = await hebrewResponse.text();
-            this.hebrewData = this.parseStrongsXML(hebrewText, 'hebrew');
+            this.hebrewData = this.parseHebrewXML(hebrewText);
             console.log(`Loaded ${this.hebrewData?.length || 0} Hebrew entries`);
             
             // Load Greek Strong's XML  
             console.log('Loading Greek XML...');
             const greekResponse = await fetch('strong_greek.xml');
             const greekText = await greekResponse.text();
-            this.greekData = this.parseStrongsXML(greekText, 'greek');
+            this.greekData = this.parseGreekXML(greekText);
             console.log(`Loaded ${this.greekData?.length || 0} Greek entries`);
             
             // Combine and process all entries
             this.processAllEntries();
             
             console.log(`Total entries: ${this.allEntries.length}`);
-            console.log('Sample Hebrew entry:', this.allEntries.find(e => e.language === 'hebrew'));
-            console.log('Sample Greek entry:', this.allEntries.find(e => e.language === 'greek'));
+            
+            // Debug: Show first few entries of each type
+            const firstHebrew = this.allEntries.find(e => e.language === 'hebrew');
+            const firstGreek = this.allEntries.find(e => e.language === 'greek');
+            console.log('First Hebrew entry:', firstHebrew);
+            console.log('First Greek entry:', firstGreek);
             
         } catch (error) {
             console.error('Error loading XML data:', error);
@@ -139,58 +143,42 @@ class BibleDictionary {
         }
     }
     
-    parseStrongsXML(xmlText, language) {
+    // ===== HEBREW PARSER =====
+    parseHebrewXML(xmlText) {
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-        
         const entries = [];
         const divElements = xmlDoc.getElementsByTagName('div');
         
-        console.log(`Found ${divElements.length} div elements for ${language}`);
+        console.log(`Found ${divElements.length} div elements in Hebrew XML`);
         
         for (let div of divElements) {
             if (div.getAttribute('type') === 'entry') {
-                const entry = this.parseEntryElement(div, language);
+                const entry = this.parseHebrewEntry(div);
                 if (entry) {
                     entries.push(entry);
                 }
             }
         }
         
-        console.log(`Parsed ${entries.length} valid entries for ${language}`);
+        console.log(`Parsed ${entries.length} Hebrew entries`);
         return entries;
     }
     
-    parseEntryElement(divElement, language) {
+    parseHebrewEntry(divElement) {
         try {
             const entryId = divElement.getAttribute('n');
-            if (!entryId) {
-                console.warn('No entry ID found');
-                return null;
-            }
+            if (!entryId) return null;
             
-            const strongId = language === 'hebrew' ? `H${entryId}` : `G${entryId}`;
+            const strongId = `H${entryId}`;
             
-            // Get the word element - handle both Hebrew and Greek structures
-            let wordElement = divElement.getElementsByTagName('w')[0];
-            
-            // For Greek, sometimes it's inside a foreign tag
-            if (!wordElement && language === 'greek') {
-                const foreignElements = divElement.getElementsByTagName('foreign');
-                if (foreignElements.length > 0) {
-                    wordElement = foreignElements[0].getElementsByTagName('w')[0];
-                }
-            }
-            
-            if (!wordElement) {
-                console.warn(`No word element found for ${strongId}`);
-                return null;
-            }
+            // Get the word element
+            const wordElement = divElement.getElementsByTagName('w')[0];
+            if (!wordElement) return null;
             
             // Extract data from attributes
             const originalWord = wordElement.textContent?.trim() || '';
-            const transliteration = wordElement.getAttribute('xlit') || 
-                                   wordElement.getAttribute('lemma') || '';
+            const transliteration = wordElement.getAttribute('xlit') || '';
             const pronunciation = wordElement.getAttribute('POS') || '';
             const lemma = wordElement.getAttribute('lemma') || '';
             const morph = wordElement.getAttribute('morph') || '';
@@ -206,60 +194,215 @@ class BibleDictionary {
                 }
             }
             
-            // For Hebrew entries, get Greek references
+            // Get Greek references
             const greekReferences = [];
-            if (language === 'hebrew') {
-                const foreign = divElement.getElementsByTagName('foreign')[0];
-                if (foreign) {
-                    const greekWords = foreign.getElementsByTagName('w');
-                    for (let gw of greekWords) {
-                        const gloss = gw.getAttribute('gloss');
-                        if (gloss && gloss.startsWith('G:')) {
-                            greekReferences.push(gloss.substring(2));
-                        }
+            const foreign = divElement.getElementsByTagName('foreign')[0];
+            if (foreign) {
+                const greekWords = foreign.getElementsByTagName('w');
+                for (let gw of greekWords) {
+                    const gloss = gw.getAttribute('gloss');
+                    if (gloss && gloss.startsWith('G:')) {
+                        greekReferences.push(gloss.substring(2));
                     }
                 }
             }
             
-            // For Greek entries, get Hebrew references (some Greek XML might have them)
-            const hebrewReferences = [];
-            if (language === 'greek') {
-                const foreign = divElement.getElementsByTagName('foreign')[0];
-                if (foreign) {
-                    const hebrewWords = foreign.getElementsByTagName('w');
-                    for (let hw of hebrewWords) {
-                        const gloss = hw.getAttribute('gloss');
-                        if (gloss && gloss.startsWith('H:')) {
-                            hebrewReferences.push(gloss.substring(2));
-                        }
-                    }
-                }
-            }
-            
-            // Create entry object
-            const entry = {
+            return {
                 id: strongId,
                 number: parseInt(entryId),
                 original: originalWord,
-                transliteration: transliteration || strongId, // Fallback to ID if no transliteration
+                transliteration: transliteration || strongId,
                 pronunciation: pronunciation,
                 lemma: lemma,
                 morphology: morph,
                 definition: definitionItems.length > 0 ? definitionItems : ['No definition available'],
-                language: language,
+                language: 'hebrew',
                 greekReferences: greekReferences,
-                hebrewReferences: hebrewReferences,
-                gloss: wordElement.getAttribute('gloss') || '',
                 searchText: `${strongId} ${originalWord} ${transliteration} ${pronunciation} ${lemma}`.toLowerCase()
             };
             
-            return entry;
-            
         } catch (error) {
-            console.error(`Error parsing ${language} entry:`, error);
-            console.log('Problematic div:', divElement.outerHTML);
+            console.error('Error parsing Hebrew entry:', error);
             return null;
         }
+    }
+    
+    // ===== GREEK PARSER (for your specific XML format) =====
+    parseGreekXML(xmlText) {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+        const entries = [];
+        
+        // Find all entry elements
+        const entryElements = xmlDoc.getElementsByTagName('entry');
+        console.log(`Found ${entryElements.length} entry elements in Greek XML`);
+        
+        for (let entryEl of entryElements) {
+            const entry = this.parseGreekEntry(entryEl);
+            if (entry) {
+                entries.push(entry);
+            }
+        }
+        
+        console.log(`Parsed ${entries.length} Greek entries`);
+        return entries;
+    }
+    
+    parseGreekEntry(entryElement) {
+        try {
+            // Get Strong's number from attribute (e.g., "00001")
+            const strongsAttr = entryElement.getAttribute('strongs');
+            if (!strongsAttr) return null;
+            
+            // Remove leading zeros and convert to number
+            const entryNumber = parseInt(strongsAttr.replace(/^0+/, ''), 10);
+            if (isNaN(entryNumber)) return null;
+            
+            const strongId = `G${entryNumber}`;
+            
+            // Get Greek word element
+            const greekElement = entryElement.getElementsByTagName('greek')[0];
+            let originalWord = '';
+            let transliteration = '';
+            let betaCode = '';
+            
+            if (greekElement) {
+                originalWord = greekElement.getAttribute('unicode') || '';
+                transliteration = greekElement.getAttribute('translit') || '';
+                betaCode = greekElement.getAttribute('BETA') || '';
+            }
+            
+            // Get pronunciation
+            const pronunciationElement = entryElement.getElementsByTagName('pronunciation')[0];
+            const pronunciation = pronunciationElement ? 
+                pronunciationElement.getAttribute('strongs') || '' : '';
+            
+            // Get definition from strongs_def element
+            const definitionElement = entryElement.getElementsByTagName('strongs_def')[0];
+            let definitionText = '';
+            
+            if (definitionElement) {
+                // Extract text content, handling nested elements
+                definitionText = this.extractTextFromElement(definitionElement);
+            }
+            
+            // Also get KJV definition
+            const kjvDefElement = entryElement.getElementsByTagName('kjv_def')[0];
+            let kjvDefinition = '';
+            
+            if (kjvDefElement) {
+                kjvDefinition = this.extractTextFromElement(kjvDefElement);
+            }
+            
+            // Get derivation/etymology
+            const derivationElement = entryElement.getElementsByTagName('strongs_derivation')[0];
+            let derivation = '';
+            
+            if (derivationElement) {
+                derivation = this.extractTextFromElement(derivationElement);
+            }
+            
+            // Get Hebrew references (cross-references)
+            const hebrewReferences = [];
+            const seeElements = entryElement.getElementsByTagName('see');
+            
+            for (let seeEl of seeElements) {
+                const language = seeEl.getAttribute('language');
+                const ref = seeEl.getAttribute('strongs');
+                
+                if (language === 'HEBREW' && ref) {
+                    // Remove leading zeros from Hebrew reference
+                    const cleanRef = ref.replace(/^0+/, '');
+                    hebrewReferences.push(cleanRef);
+                }
+            }
+            
+            // Also get references from strongsref elements
+            const strongsrefElements = entryElement.getElementsByTagName('strongsref');
+            
+            for (let refEl of strongsrefElements) {
+                const language = refEl.getAttribute('language');
+                const ref = refEl.getAttribute('strongs');
+                
+                if (language === 'HEBREW' && ref) {
+                    const cleanRef = ref.replace(/^0+/, '');
+                    if (!hebrewReferences.includes(cleanRef)) {
+                        hebrewReferences.push(cleanRef);
+                    }
+                }
+            }
+            
+            // Combine all definition parts
+            const definitionItems = [];
+            
+            if (definitionText.trim()) {
+                definitionItems.push(definitionText.trim());
+            }
+            
+            if (kjvDefinition.trim() && kjvDefinition !== definitionText) {
+                definitionItems.push(`KJV: ${kjvDefinition.trim()}`);
+            }
+            
+            if (derivation.trim()) {
+                definitionItems.push(`Derivation: ${derivation.trim()}`);
+            }
+            
+            // Create entry object
+            return {
+                id: strongId,
+                number: entryNumber,
+                original: originalWord || betaCode || strongId,
+                transliteration: transliteration || strongId,
+                pronunciation: pronunciation,
+                lemma: betaCode || '',
+                morphology: '',
+                definition: definitionItems.length > 0 ? definitionItems : ['No definition available'],
+                language: 'greek',
+                hebrewReferences: hebrewReferences,
+                betaCode: betaCode,
+                derivation: derivation,
+                searchText: `${strongId} ${originalWord} ${transliteration} ${betaCode} ${pronunciation} ${definitionText}`.toLowerCase()
+            };
+            
+        } catch (error) {
+            console.error('Error parsing Greek entry:', error);
+            console.log('Problematic entry:', entryElement.outerHTML.substring(0, 500));
+            return null;
+        }
+    }
+    
+    // Helper method to extract text from element with nested tags
+    extractTextFromElement(element) {
+        if (!element) return '';
+        
+        // Clone the element to avoid modifying the original
+        const clone = element.cloneNode(true);
+        
+        // Replace certain elements with their text representations
+        const greekElements = clone.getElementsByTagName('greek');
+        for (let greekEl of greekElements) {
+            const translit = greekEl.getAttribute('translit') || '';
+            greekEl.replaceWith(document.createTextNode(translit));
+        }
+        
+        const strongsrefElements = clone.getElementsByTagName('strongsref');
+        for (let refEl of strongsrefElements) {
+            const language = refEl.getAttribute('language');
+            const ref = refEl.getAttribute('strongs');
+            if (ref) {
+                const cleanRef = ref.replace(/^0+/, '');
+                refEl.replaceWith(document.createTextNode(`${language === 'GREEK' ? 'G' : 'H'}${cleanRef}`));
+            }
+        }
+        
+        const pronunciationElements = clone.getElementsByTagName('pronunciation');
+        for (let pronEl of pronunciationElements) {
+            const pron = pronEl.getAttribute('strongs') || '';
+            pronEl.replaceWith(document.createTextNode(`[${pron}]`));
+        }
+        
+        // Get the text content
+        return clone.textContent || '';
     }
     
     processAllEntries() {
@@ -667,6 +810,11 @@ class BibleDictionary {
             ? entry.definition[0].substring(0, 150) + (entry.definition[0].length > 150 ? '...' : '')
             : 'No definition available';
         
+        // Add pronunciation for Greek entries
+        const pronunciationHtml = entry.language === 'greek' && entry.pronunciation 
+            ? `<div class="entry-pronunciation">${entry.pronunciation}</div>` 
+            : '';
+        
         div.innerHTML = `
             <div class="entry-header">
                 <div>
@@ -675,6 +823,7 @@ class BibleDictionary {
                         <span class="entry-id">${entry.id}</span>
                         ${entry.original ? `<span class="entry-original ${entry.language === 'hebrew' ? 'rtl' : ''}">${entry.original}</span>` : ''}
                     </div>
+                    ${pronunciationHtml}
                 </div>
                 <div class="entry-type-badge ${entry.language}">
                     ${entry.language === 'hebrew' ? 'H' : 'G'}
@@ -740,7 +889,7 @@ class BibleDictionary {
         ).join('') : '<p>No definition available</p>';
         this.elements.modalDefinition.innerHTML = definitionHtml;
         
-        // Update pronunciation
+        // Update pronunciation (especially for Greek)
         if (entry.pronunciation && entry.pronunciation.trim()) {
             this.elements.modalPronunciation.textContent = entry.pronunciation;
             if (this.elements.pronunciationSection) {
@@ -770,10 +919,18 @@ class BibleDictionary {
             }
         }
         
-        // Update Greek references (for Hebrew entries)
+        // Update cross-references
         if (entry.language === 'hebrew' && entry.greekReferences && entry.greekReferences.length > 0) {
             const referencesHtml = entry.greekReferences.map(ref => 
                 `<span class="bible-ref" data-ref="G${ref}">G${ref}</span>`
+            ).join('');
+            this.elements.modalReferences.innerHTML = referencesHtml;
+            if (this.elements.bibleReferencesSection) {
+                this.elements.bibleReferencesSection.style.display = 'block';
+            }
+        } else if (entry.language === 'greek' && entry.hebrewReferences && entry.hebrewReferences.length > 0) {
+            const referencesHtml = entry.hebrewReferences.map(ref => 
+                `<span class="bible-ref" data-ref="H${ref}">H${ref}</span>`
             ).join('');
             this.elements.modalReferences.innerHTML = referencesHtml;
             if (this.elements.bibleReferencesSection) {
@@ -966,6 +1123,8 @@ ${entry.definition ? entry.definition.map((item, i) => `${i + 1}. ${item}`).join
 
 ${entry.greekReferences && entry.greekReferences.length > 0 ? 
     `Greek References: ${entry.greekReferences.map(r => 'G' + r).join(', ')}` : ''}
+${entry.hebrewReferences && entry.hebrewReferences.length > 0 ? 
+    `Hebrew References: ${entry.hebrewReferences.map(r => 'H' + r).join(', ')}` : ''}
         `.trim();
     }
     
