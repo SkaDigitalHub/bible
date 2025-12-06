@@ -1037,6 +1037,686 @@ header {
     cursor: not-allowed;
 }
 
+/* ===== IMPROVED HEADER & MOBILE RESPONSIVE DESIGN ===== */
+
+/* Header - Enhanced for mobile */
+header {
+    height: var(--header-height);
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header);
+    gap: 10px;
+    flex-wrap: nowrap;
+    overflow: hidden;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0; /* Allow text truncation */
+    overflow: hidden;
+}
+
+.menu-toggle {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+
+.menu-toggle:hover {
+    background: var(--hover-bg);
+}
+
+.header-title {
+    flex: 1;
+    min-width: 0; /* Allow text truncation */
+    overflow: hidden;
+}
+
+.header-title h1 {
+    font-size: clamp(1rem, 3vw, 1.3rem);
+    color: var(--primary-color);
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.header-title h1 i {
+    font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+    flex-shrink: 0;
+}
+
+.current-location-header {
+    font-size: clamp(0.7rem, 2vw, 0.85rem);
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.current-location-header span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.header-right {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.header-btn {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    transition: all 0.2s;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.header-btn:hover {
+    background: var(--hover-bg);
+    color: var(--primary-color);
+}
+
+.header-btn.active {
+    color: var(--warning-color);
+}
+
+.header-btn[data-count]:after {
+    content: attr(data-count);
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: var(--accent-color);
+    color: white;
+    font-size: 0.6rem;
+    font-weight: bold;
+    padding: 1px 4px;
+    border-radius: 8px;
+    min-width: 14px;
+    text-align: center;
+    line-height: 1;
+}
+
+/* ===== QUICK NAV IMPROVEMENTS ===== */
+.quick-nav {
+    padding: 15px;
+    background: var(--card-bg);
+    margin: 10px;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.nav-group {
+    flex: 1;
+    min-width: 150px;
+}
+
+.nav-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: clamp(0.8rem, 2vw, 0.9rem);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.nav-group select {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: clamp(0.85rem, 2vw, 0.9rem);
+    background: var(--card-bg);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: border-color 0.2s;
+    height: 42px;
+}
+
+.nav-buttons {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.nav-btn {
+    padding: 10px 15px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: clamp(0.85rem, 2vw, 0.9rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.2s;
+    min-width: 100px;
+    height: 42px;
+    flex-shrink: 0;
+}
+
+.nav-btn i {
+    font-size: clamp(0.8rem, 2vw, 0.9rem);
+}
+
+/* ===== CHAPTER HEADER MOBILE IMPROVEMENTS ===== */
+.chapter-header {
+    padding: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.chapter-header h2 {
+    font-size: clamp(1.3rem, 4vw, 1.8rem);
+    margin-bottom: 0;
+    line-height: 1.2;
+    word-break: break-word;
+}
+
+.chapter-info {
+    display: flex;
+    gap: 15px;
+    font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+    opacity: 0.9;
+    flex-wrap: wrap;
+}
+
+/* ===== FOOTER MOBILE IMPROVEMENTS ===== */
+footer {
+    height: auto;
+    min-height: var(--footer-height);
+    background: var(--card-bg);
+    border-top: 1px solid var(--border-color);
+    padding: 10px 15px;
+    flex-shrink: 0;
+}
+
+.footer-content {
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.footer-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--border-color);
+    border-radius: 3px;
+    overflow: hidden;
+    min-width: 100px;
+}
+
+#progress-bar-text, #dictionary-progress {
+    font-size: clamp(0.75rem, 2vw, 0.85rem);
+    color: var(--text-light);
+    min-width: 50px;
+    white-space: nowrap;
+}
+
+.footer-right {
+    font-size: clamp(0.75rem, 2vw, 0.85rem);
+    color: var(--text-light);
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* ===== DICTIONARY HEADER IMPROVEMENTS ===== */
+.language-stats {
+    font-size: clamp(0.75rem, 2vw, 0.85rem);
+    color: var(--text-light);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.hebrew-stat, .greek-stat {
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.hebrew-stat {
+    background: rgba(52, 152, 219, 0.1);
+    color: var(--primary-color);
+}
+
+.greek-stat {
+    background: rgba(231, 76, 60, 0.1);
+    color: var(--accent-color);
+}
+
+/* ===== IMPROVED RESPONSIVE BREAKPOINTS ===== */
+
+/* Small tablets and large phones (600px and up) */
+@media (max-width: 768px) {
+    :root {
+        --sidebar-width: 100%;
+        --header-height: 60px;
+        --footer-height: 50px;
+    }
+    
+    header {
+        padding: 0 10px;
+        gap: 8px;
+    }
+    
+    .header-title h1 {
+        font-size: 1.1rem;
+    }
+    
+    .header-title h1 i {
+        font-size: 1rem;
+    }
+    
+    .header-btn {
+        width: 34px;
+        height: 34px;
+        padding: 5px;
+    }
+    
+    .quick-nav {
+        flex-direction: column;
+        align-items: stretch;
+        margin: 8px;
+        padding: 12px;
+        gap: 12px;
+    }
+    
+    .nav-group {
+        min-width: auto;
+    }
+    
+    .nav-buttons {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .nav-btn {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .share-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 8px;
+    }
+    
+    .footer-left {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .bible-text {
+        max-height: 50vh;
+        padding: 15px;
+        font-size: 1rem;
+    }
+    
+    .verse {
+        flex-direction: column;
+        gap: 8px;
+        padding-left: 0;
+    }
+    
+    .verse-actions {
+        opacity: 1;
+        justify-content: flex-end;
+        width: 100%;
+    }
+    
+    .dictionary-entries {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        padding: 15px;
+        gap: 15px;
+    }
+    
+    .alphabet-nav {
+        gap: 3px;
+        padding: 10px;
+    }
+    
+    .alphabet-letter {
+        padding: 6px 8px;
+        min-width: 32px;
+        font-size: 0.85rem;
+    }
+    
+    .modal-content {
+        width: 95%;
+        max-height: 85vh;
+        margin: 10px;
+    }
+    
+    .toast {
+        left: 10px;
+        right: 10px;
+        max-width: none;
+        padding: 12px 20px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Mobile phones (480px and below) */
+@media (max-width: 480px) {
+    :root {
+        --header-height: 56px;
+    }
+    
+    header {
+        padding: 0 8px;
+    }
+    
+    .header-title h1 {
+        font-size: 1rem;
+        gap: 5px;
+    }
+    
+    .header-title h1 i {
+        font-size: 0.9rem;
+    }
+    
+    .current-location-header {
+        font-size: 0.7rem;
+        gap: 2px;
+    }
+    
+    .menu-toggle {
+        width: 36px;
+        height: 36px;
+        padding: 6px;
+    }
+    
+    .header-btn {
+        width: 32px;
+        height: 32px;
+        padding: 4px;
+        font-size: 0.9rem;
+    }
+    
+    .dictionary-entries {
+        grid-template-columns: 1fr;
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    .category-tags {
+        gap: 4px;
+    }
+    
+    .category-tag {
+        padding: 5px 10px;
+        font-size: 0.75rem;
+    }
+    
+    .chapter-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    .bible-text {
+        font-size: 0.95rem;
+        padding: 10px;
+    }
+    
+    .verse-num {
+        width: 26px;
+        height: 26px;
+        font-size: 0.75rem;
+    }
+    
+    .menu-section {
+        padding: 12px;
+    }
+    
+    .search-box input {
+        padding: 10px;
+        font-size: 0.85rem;
+    }
+    
+    .search-box button {
+        padding: 10px 15px;
+        min-width: 45px;
+    }
+    
+    /* Hide some header buttons on very small screens */
+    .header-btn:nth-child(n+3) {
+        display: none;
+    }
+    
+    /* Show menu button as backup */
+    .menu-toggle.always-visible {
+        display: flex !important;
+    }
+}
+
+/* Extra small phones (360px and below) */
+@media (max-width: 360px) {
+    .header-title h1 {
+        font-size: 0.9rem;
+    }
+    
+    .header-title h1 i {
+        display: none; /* Hide icon on very small screens */
+    }
+    
+    .current-location-header {
+        font-size: 0.65rem;
+    }
+    
+    .nav-btn {
+        min-width: 0;
+        padding: 8px 12px;
+    }
+    
+    .nav-btn span {
+        display: none; /* Hide text, show only icons */
+    }
+    
+    .nav-btn i {
+        margin: 0;
+    }
+    
+    .quick-nav {
+        margin: 5px;
+        padding: 10px;
+    }
+    
+    .alphabet-letter {
+        padding: 5px 6px;
+        min-width: 28px;
+        font-size: 0.8rem;
+    }
+    
+    .entry-title {
+        font-size: 1rem;
+    }
+    
+    .entry-subtitle {
+        font-size: 0.75rem;
+    }
+    
+    .entry-type-badge {
+        font-size: 0.65rem;
+        padding: 3px 8px;
+    }
+}
+
+/* Landscape mode on mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+    :root {
+        --header-height: 50px;
+    }
+    
+    header {
+        padding: 0 5px;
+    }
+    
+    .header-title h1 {
+        font-size: 0.9rem;
+    }
+    
+    .bible-text {
+        max-height: 40vh;
+        padding: 10px;
+    }
+    
+    .quick-nav {
+        padding: 8px;
+        margin: 5px;
+    }
+    
+    .nav-btn {
+        padding: 8px 12px;
+        height: 36px;
+    }
+}
+
+/* High-density screens */
+@media (min-resolution: 192dpi) {
+    .header-btn,
+    .menu-toggle,
+    .nav-btn {
+        border-radius: 6px;
+    }
+    
+    .progress-bar {
+        border-radius: 4px;
+    }
+}
+
+/* Dark mode specific mobile adjustments */
+[data-theme="dark"] .header-btn:hover {
+    background: var(--hover-bg);
+}
+
+[data-theme="dark"] .menu-toggle:hover {
+    background: var(--hover-bg);
+}
+
+/* Safe area insets for modern mobile devices */
+@supports (padding: max(0px)) {
+    header {
+        padding-left: max(15px, env(safe-area-inset-left));
+        padding-right: max(15px, env(safe-area-inset-right));
+    }
+    
+    footer {
+        padding-left: max(15px, env(safe-area-inset-left));
+        padding-right: max(15px, env(safe-area-inset-right));
+    }
+    
+    .quick-nav {
+        margin-left: max(10px, env(safe-area-inset-left));
+        margin-right: max(10px, env(safe-area-inset-right));
+    }
+    
+    .bible-text-container {
+        margin-left: max(10px, env(safe-area-inset-left));
+        margin-right: max(10px, env(safe-area-inset-right));
+    }
+}
+
+/* Prevent text size adjustment on mobile */
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+/* Touch-friendly tap targets */
+button,
+select,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+/* Improve touch scrolling */
+.bible-text,
+.dictionary-entries,
+.search-results,
+.bookmarks-content {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+
+/* Hide scrollbars on mobile when not scrolling */
+@media (max-width: 768px) {
+    .bible-text::-webkit-scrollbar,
+    .dictionary-entries::-webkit-scrollbar,
+    .search-results::-webkit-scrollbar {
+        width: 4px;
+    }
+}
+
 /* ===== DICTIONARY-SPECIFIC STYLES ===== */
 /* Alphabet Navigation */
 .alphabet-nav {
@@ -1718,6 +2398,32 @@ footer {
 
 .toast.warning {
     background: var(--warning-color);
+}
+
+.language-stats {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.hebrew-stat {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.greek-stat {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+/* Add to your CSS file */
+.entry-pronunciation {
+    font-size: 0.8rem;
+    color: var(--warning-color);
+    font-style: italic;
+    margin-top: 4px;
 }
 
 /* ===== PRINT STYLES ===== */
