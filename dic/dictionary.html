@@ -1,0 +1,231 @@
+<!-- Add this to your index.html, maybe as a separate page or integrated section -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ska Bible Dictionary</title>
+    <link rel="stylesheet" href="dictionary.css ">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Side Menu (similar to your Bible app) -->
+    <div class="side-menu" id="sideMenu">
+        <div class="menu-header">
+            <h3><i class="fas fa-book"></i> Ska Bible Dictionary</h3>
+            <button class="close-menu" id="closeMenu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="menu-section">
+            <h4><i class="fas fa-filter"></i> Filter by</h4>
+            <div class="filter-options">
+                <select id="filter-type" class="translation-select">
+                    <option value="all">All Terms</option>
+                    <option value="people">People</option>
+                    <option value="places">Places</option>
+                    <option value="concepts">Concepts</option>
+                    <option value="objects">Objects</option>
+                    <option value="events">Events</option>
+                </select>
+                
+                <select id="filter-alphabet" class="translation-select" style="margin-top: 10px;">
+                    <option value="all">All Letters</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <!-- Add all letters A-Z -->
+                </select>
+            </div>
+        </div>
+        
+        <div class="menu-section">
+            <h4><i class="fas fa-search"></i> Search Dictionary</h4>
+            <div class="search-box">
+                <input type="text" id="dictionary-search" placeholder="Search for terms...">
+                <button id="dictionary-search-btn"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="search-stats" id="dictionary-stats">
+                Loading dictionary...
+            </div>
+        </div>
+        
+        <div class="menu-section">
+            <h4><i class="fas fa-history"></i> Recent Searches</h4>
+            <div id="recent-searches" class="recent-searches">
+                <p class="empty-state">No recent searches</p>
+            </div>
+        </div>
+        
+        <div class="menu-section">
+            <h4><i class="fas fa-star"></i> Favorite Terms</h4>
+            <div id="favorite-terms" class="favorite-terms">
+                <p class="empty-state">No favorite terms yet</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Overlay for mobile menu -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+    
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="header-title">
+                    <h1><i class="fas fa-book"></i> Bible Dictionary</h1>
+                    <div class="current-location-header">
+                        <span id="total-terms">0</span> terms • 
+                        <span id="current-filter">All Terms</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="header-btn" id="themeToggle" title="Toggle Theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="header-btn" id="clearHistoryBtn" title="Clear Search History">
+                    <i class="fas fa-trash"></i>
+                </button>
+                <button class="header-btn" id="viewFavoritesBtn" title="View Favorites">
+                    <i class="far fa-star"></i>
+                </button>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <main>
+            <!-- Quick Filters -->
+            <div class="quick-nav">
+                <div class="nav-group">
+                    <label for="sort-select"><i class="fas fa-sort-alpha-down"></i> Sort by:</label>
+                    <select id="sort-select">
+                        <option value="name-asc">Name (A-Z)</option>
+                        <option value="name-desc">Name (Z-A)</option>
+                        <option value="relevance">Relevance</option>
+                        <option value="type">Type</option>
+                    </select>
+                </div>
+                
+                <div class="nav-group">
+                    <label><i class="fas fa-tags"></i> Quick Categories:</label>
+                    <div class="category-tags">
+                        <button class="category-tag" data-type="people">People</button>
+                        <button class="category-tag" data-type="places">Places</button>
+                        <button class="category-tag" data-type="concepts">Concepts</button>
+                        <button class="category-tag" data-type="objects">Objects</button>
+                        <button class="category-tag" data-type="events">Events</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dictionary Display -->
+            <div class="dictionary-container">
+                <!-- Alphabet Navigation -->
+                <div class="alphabet-nav" id="alphabetNav">
+                    <button class="alphabet-letter" data-letter="all">All</button>
+                    <!-- Letters will be populated by JavaScript -->
+                </div>
+                
+                <!-- Dictionary Entries -->
+                <div class="dictionary-entries" id="dictionaryEntries">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading dictionary entries...</p>
+                    </div>
+                </div>
+                
+                <!-- No Results -->
+                <div class="no-results" id="noResults" style="display: none;">
+                    <i class="fas fa-search" style="font-size: 3rem; color: var(--text-light); margin-bottom: 20px;"></i>
+                    <h3>No results found</h3>
+                    <p>Try a different search term or filter</p>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Footer -->
+        <footer>
+            <div class="footer-content">
+                <div class="footer-left">
+                    <span id="dictionary-progress">Loading...</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="dictionary-progress-fill"></div>
+                    </div>
+                </div>
+                <div class="footer-right">
+                    <span id="viewing-stats">0 of 0 entries</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Entry Detail Modal -->
+    <div class="modal" id="entryModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-book-open"></i> <span id="modal-term">Term</span></h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="entry-header">
+                    <div class="entry-type-badge" id="modal-type">Type</div>
+                    <div class="entry-actions">
+                        <button class="entry-action-btn" id="favoriteBtn" title="Add to favorites">
+                            <i class="far fa-star"></i>
+                        </button>
+                        <button class="entry-action-btn" id="copyEntryBtn" title="Copy entry">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="entry-action-btn" id="shareEntryBtn" title="Share">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="entry-content">
+                    <div class="entry-section">
+                        <h4><i class="fas fa-info-circle"></i> Definition</h4>
+                        <p id="modal-definition">Loading...</p>
+                    </div>
+                    
+                    <div class="entry-section" id="bible-references-section" style="display: none;">
+                        <h4><i class="fas fa-bible"></i> Bible References</h4>
+                        <div class="bible-references" id="modal-references">
+                            <!-- References will be populated -->
+                        </div>
+                    </div>
+                    
+                    <div class="entry-section" id="related-terms-section" style="display: none;">
+                        <h4><i class="fas fa-link"></i> Related Terms</h4>
+                        <div class="related-terms" id="modal-related">
+                            <!-- Related terms will be populated -->
+                        </div>
+                    </div>
+                    
+                    <div class="entry-section" id="pronunciation-section" style="display: none;">
+                        <h4><i class="fas fa-volume-up"></i> Pronunciation</h4>
+                        <p id="modal-pronunciation"></p>
+                    </div>
+                    
+                    <div class="entry-section" id="original-language-section" style="display: none;">
+                        <h4><i class="fas fa-language"></i> Original Language</h4>
+                        <p id="modal-original"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notifications -->
+    <div id="toast" class="toast"></div>
+    
+    <script src="dictionary.js"></script>
+</body>
+</html>
