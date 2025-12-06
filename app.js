@@ -1,5 +1,11 @@
 // Enhanced Bible Web App with Multiple Features
-// Includes: Multiple translations, dark mode, bookmarks, search, sharing, progress tracking
+
+const fonts = {
+    'serif': "'Times New Roman', serif",
+    'sans-serif': "'Segoe UI', sans-serif",
+    'modern': "'Inter', sans-serif",
+    'traditional': "'Merriweather', serif"
+};
 
 class BibleApp {
     constructor() {
@@ -13,20 +19,24 @@ class BibleApp {
         this.bookmarkedChapters = new Set();
         this.readChapters = new Set();
         
+        // NEW: Verse bookmarks
+        this.bookmarkedVerses = new Set();
+        this.currentVerseIndex = 0;
+        
         // Translation URLs
         this.translationUrls = {
-            'kjv': 'https://skadigitalhub.github.io/NKJVBible/bible-kjv.json',
-            'bbe': 'https://skadigitalhub.github.io/NKJVBible/bbe.json', // Placeholder - update with actual BBE URL
-            'amp': 'bbe.json',
-            'nlt': 'bible.json'
+            'kjv': 'bible.json',
+            'bbe': 'bbe.json',
+            'amp': 'https://skadigitalhub.github.io/NKJVBible/amp.json',
+            'nlt': 'https://raw.githubusercontent.com/bibleapi/bibleapi-bibles-json/refs/heads/master/asv.json'
         };
         
         // Translation names
         this.translationNames = {
-            'kjv': 'King James Version',
-            'bbe': 'Bible in Basic English',
-            'amp': 'Amplified Bible',
-            'nlt': 'New Living Translation'
+            'kjv': 'KJV - King James Version',
+            'bbe': 'BBE - Bible in Basic English',
+            'amp': 'AMP - Amplified Bible',
+            'nlt': 'NLT - New Living Translation'
         };
         
         // Initialize
@@ -80,8 +90,13 @@ class BibleApp {
         this.searchResults = document.getElementById('search-results');
         
         // Bookmark elements
-        this.bookmarksList = document.getElementById('bookmarks-list');
         this.bookmarkBtn = document.getElementById('bookmarkBtn');
+        
+        // NEW: Enhanced bookmark elements
+        this.bookmarkTabs = document.querySelectorAll('.bookmark-tab');
+        this.chapterBookmarksList = document.getElementById('chapter-bookmarks');
+        this.verseBookmarksList = document.getElementById('verse-bookmarks');
+        this.addCurrentVerseBtn = document.getElementById('add-current-verse');
         
         // Progress elements
         this.chaptersReadElement = document.getElementById('chapters-read');
@@ -146,7 +161,7 @@ class BibleApp {
         this.populateChapterDropdown();
         this.loadCurrentChapter();
         this.updateCurrentLocationDisplay();
-        this.updateBookmarksList();
+        this.updateBookmarksUI(); // UPDATED: Changed from updateBookmarksList
         this.updateProgress();
         this.applyTheme();
         this.updateTranslationDisplay();
@@ -183,6 +198,8 @@ class BibleApp {
             }
             this.chapterSelect.appendChild(option);
         }
+        
+        this.chapterSelect.disabled = chapterCount === 0;
     }
     
     loadCurrentChapter() {
@@ -195,23 +212,19 @@ class BibleApp {
             return;
         }
         
-        // Clear previous text
         this.textDisplay.innerHTML = '';
         
-        // Check if verse numbers should be shown
         const showVerseNumbers = this.verseNumbersToggle?.checked ?? true;
         
-        // Display each verse
         chapter.forEach((verseText, verseIndex) => {
             const verseElement = this.createVerseElement(verseIndex + 1, verseText, showVerseNumbers);
             this.textDisplay.appendChild(verseElement);
         });
         
-        // Mark chapter as read
-        this.markChapterAsRead();
-        
-        // Update navigation buttons
+        this.populateChapterDropdown();
+        this.updateCurrentLocationDisplay();
         this.updateNavigationButtons();
+        this.markChapterAsRead();
     }
     
     createVerseElement(verseNumber, verseText, showVerseNumbers) {
@@ -219,10 +232,13 @@ class BibleApp {
         verseElement.className = 'verse';
         verseElement.dataset.verseNumber = verseNumber;
         
-        // Check if verse is highlighted
+        // Check if verse is highlighted or bookmarked
         const verseKey = this.getVerseKey(verseNumber);
         if (this.highlightedVerses.has(verseKey)) {
             verseElement.classList.add('highlighted');
+        }
+        if (this.bookmarkedVerses.has(verseKey)) {
+            verseElement.classList.add('bookmarked');
         }
         
         // Verse number
@@ -254,6 +270,19 @@ class BibleApp {
         };
         actionsDiv.appendChild(highlightBtn);
         
+        // NEW: Verse bookmark button
+        const bookmarkBtn = document.createElement('button');
+        bookmarkBtn.className = 'verse-action-btn';
+        bookmarkBtn.innerHTML = this.bookmarkedVerses.has(verseKey) ? 
+            '<i class="fas fa-bookmark"></i>' : '<i class="far fa-bookmark"></i>';
+        bookmarkBtn.title = this.bookmarkedVerses.has(verseKey) ? 
+            'Remove verse bookmark' : 'Bookmark verse';
+        bookmarkBtn.onclick = (e) => {
+            e.stopPropagation();
+            this.toggleVerseBookmark(verseNumber);
+        };
+        actionsDiv.appendChild(bookmarkBtn);
+        
         // Copy verse button
         const copyBtn = document.createElement('button');
         copyBtn.className = 'verse-action-btn';
@@ -273,22 +302,31 @@ class BibleApp {
     updateCurrentLocationDisplay() {
         if (!this.currentBook) return;
         
-        // Update main display
-        this.currentBookElement.textContent = this.currentBook.name;
-        this.currentChapterElement.textContent = this.currentChapterIndex + 1;
+        const chapterNumber = this.currentChapterIndex + 1;
         
-        // Update header
-        this.currentBookHeader.textContent = this.currentBook.name;
-        this.currentChapterHeader.textContent = this.currentChapterIndex + 1;
+        if (this.currentChapterElement) {
+            this.currentChapterElement.textContent = chapterNumber;
+        }
         
-        // Update verse count
+        if (this.currentChapterHeader) {
+            this.currentChapterHeader.textContent = chapterNumber;
+        }
+        
+        if (this.currentBookElement) {
+            this.currentBookElement.textContent = this.currentBook.name;
+        }
+        
+        if (this.currentBookHeader) {
+            this.currentBookHeader.textContent = this.currentBook.name;
+        }
+        
         const currentChapter = this.currentBook.chapters[this.currentChapterIndex];
-        if (currentChapter) {
+        if (currentChapter && this.verseCountElement) {
             this.verseCountElement.textContent = currentChapter.length;
         }
         
-        // Update bookmark button state
         this.updateBookmarkButton();
+        document.title = `${this.currentBook.name} ${chapterNumber} - Bible App`;
     }
     
     updateNavigationButtons() {
@@ -313,7 +351,9 @@ class BibleApp {
     goToPrevChapter() {
         if (this.currentChapterIndex > 0) {
             this.currentChapterIndex--;
+            this.updateCurrentLocationDisplay();
             this.loadCurrentChapter();
+            this.saveState();
         }
     }
     
@@ -321,7 +361,9 @@ class BibleApp {
         if (this.currentBook && 
             this.currentChapterIndex < this.currentBook.chapters.length - 1) {
             this.currentChapterIndex++;
+            this.updateCurrentLocationDisplay();
             this.loadCurrentChapter();
+            this.saveState();
         }
     }
     
@@ -330,7 +372,11 @@ class BibleApp {
             this.currentBookIndex = bookIndex;
             this.currentBook = this.bibleData[bookIndex];
             this.currentChapterIndex = 0;
+            
+            this.populateChapterDropdown();
+            this.updateCurrentLocationDisplay();
             this.loadCurrentChapter();
+            this.saveState();
         }
     }
     
@@ -339,7 +385,43 @@ class BibleApp {
             chapterIndex >= 0 && 
             chapterIndex < this.currentBook.chapters.length) {
             this.currentChapterIndex = chapterIndex;
+            this.updateCurrentLocationDisplay();
+            this.populateChapterDropdown();
             this.loadCurrentChapter();
+            this.saveState();
+        }
+    }
+    
+    // NEW: Navigate to specific verse
+    goToVerse(bookIndex, chapterIndex, verseNumber) {
+        if (bookIndex >= 0 && bookIndex < this.bibleData.length) {
+            this.currentBookIndex = bookIndex;
+            this.currentBook = this.bibleData[bookIndex];
+            
+            if (chapterIndex >= 0 && chapterIndex < this.currentBook.chapters.length) {
+                this.currentChapterIndex = chapterIndex;
+                
+                this.populateBookDropdown();
+                this.populateChapterDropdown();
+                this.updateCurrentLocationDisplay();
+                this.loadCurrentChapter();
+                
+                // Scroll to verse
+                setTimeout(() => {
+                    const verseElement = this.textDisplay.querySelector(`[data-verse-number="${verseNumber}"]`);
+                    if (verseElement) {
+                        verseElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        verseElement.style.backgroundColor = 'rgba(255, 235, 59, 0.3)';
+                        verseElement.style.transition = 'background-color 0.5s';
+                        setTimeout(() => {
+                            verseElement.style.backgroundColor = '';
+                        }, 2000);
+                    }
+                }, 300);
+                
+                this.saveState();
+                this.showToast(`Navigated to ${this.currentBook.name} ${chapterIndex + 1}:${verseNumber}`, 'success');
+            }
         }
     }
     
@@ -361,7 +443,7 @@ class BibleApp {
     
     updateTranslationDisplay() {
         const translationName = this.translationNames[this.currentTranslation];
-        this.currentTranslationElement.textContent = translationName.split(' ')[0]; // Show abbreviation
+        this.currentTranslationElement.textContent = translationName.split(' ')[0];
     }
     
     // Theme methods
@@ -374,12 +456,10 @@ class BibleApp {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('bible-theme', theme);
         
-        // Update toggle state
         if (this.darkModeToggle) {
             this.darkModeToggle.checked = theme === 'dark';
         }
         
-        // Update theme toggle button icon
         if (this.themeToggle) {
             const icon = this.themeToggle.querySelector('i');
             icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
@@ -398,7 +478,7 @@ class BibleApp {
         this.setTheme(newTheme);
     }
     
-    // Bookmark methods
+    // Bookmark methods - ENHANCED
     toggleBookmark() {
         const bookmarkKey = this.getChapterKey();
         
@@ -411,7 +491,25 @@ class BibleApp {
         }
         
         this.updateBookmarkButton();
-        this.updateBookmarksList();
+        this.updateBookmarksUI();
+        this.saveState();
+    }
+    
+    // NEW: Verse bookmark methods
+    toggleVerseBookmark(verseNumber) {
+        const verseKey = this.getVerseKey(verseNumber);
+        
+        if (this.bookmarkedVerses.has(verseKey)) {
+            this.bookmarkedVerses.delete(verseKey);
+            this.showToast('Verse bookmark removed', 'success');
+        } else {
+            this.bookmarkedVerses.add(verseKey);
+            this.showToast('Verse bookmarked', 'success');
+        }
+        
+        // Update the verse display to show bookmark icon
+        this.loadCurrentChapter();
+        this.updateBookmarksUI();
         this.saveState();
     }
     
@@ -423,55 +521,211 @@ class BibleApp {
         
         const icon = this.bookmarkBtn.querySelector('i');
         icon.className = isBookmarked ? 'fas fa-bookmark' : 'far fa-bookmark';
-        this.bookmarkBtn.title = isBookmarked ? 'Remove Bookmark' : 'Bookmark Chapter';
+        this.bookmarkBtn.title = isBookmarked ? 'Remove Chapter Bookmark' : 'Bookmark Chapter';
     }
     
-    updateBookmarksList() {
-        if (!this.bookmarksList) return;
+    // UPDATED: Combined bookmark UI update
+    updateBookmarksUI() {
+        this.updateChapterBookmarksList();
+        this.updateVerseBookmarksList();
+    }
+    
+    updateChapterBookmarksList() {
+        if (!this.chapterBookmarksList) return;
         
-        this.bookmarksList.innerHTML = '';
+        this.chapterBookmarksList.innerHTML = '';
         
         if (this.bookmarkedChapters.size === 0) {
             const emptyState = document.createElement('p');
             emptyState.className = 'empty-state';
-            emptyState.textContent = 'No bookmarks yet';
-            this.bookmarksList.appendChild(emptyState);
+            emptyState.textContent = 'No chapter bookmarks yet';
+            this.chapterBookmarksList.appendChild(emptyState);
             return;
         }
         
         Array.from(this.bookmarkedChapters).forEach(bookmarkKey => {
             const [bookIndex, chapterIndex] = bookmarkKey.split('-').map(Number);
             const book = this.bibleData[bookIndex];
+            const chapter = book.chapters[chapterIndex];
             
-            const bookmarkItem = document.createElement('div');
-            bookmarkItem.className = 'bookmark-item';
+            const bookmarkItem = this.createChapterBookmarkItem(
+                bookmarkKey, 
+                book, 
+                bookIndex, 
+                chapterIndex, 
+                chapter
+            );
             
-            const bookmarkText = document.createElement('span');
-            bookmarkText.textContent = `${book.name} ${chapterIndex + 1}`;
-            bookmarkText.style.cursor = 'pointer';
-            bookmarkText.onclick = () => {
+            this.chapterBookmarksList.appendChild(bookmarkItem);
+        });
+    }
+    
+    updateVerseBookmarksList() {
+        if (!this.verseBookmarksList) return;
+        
+        this.verseBookmarksList.innerHTML = '';
+        
+        if (this.bookmarkedVerses.size === 0) {
+            const emptyState = document.createElement('p');
+            emptyState.className = 'empty-state';
+            emptyState.textContent = 'No verse bookmarks yet';
+            this.verseBookmarksList.appendChild(emptyState);
+            return;
+        }
+        
+        Array.from(this.bookmarkedVerses).forEach(verseKey => {
+            const [bookIndex, chapterIndex, verseNumber] = verseKey.split('-').map(Number);
+            const book = this.bibleData[bookIndex];
+            const verseText = book.chapters[chapterIndex][verseNumber - 1];
+            
+            const bookmarkItem = this.createVerseBookmarkItem(
+                verseKey,
+                book,
+                bookIndex,
+                chapterIndex,
+                verseNumber,
+                verseText
+            );
+            
+            this.verseBookmarksList.appendChild(bookmarkItem);
+        });
+    }
+    
+    createChapterBookmarkItem(bookmarkKey, book, bookIndex, chapterIndex, chapter) {
+        const item = document.createElement('div');
+        item.className = 'bookmark-item';
+        item.dataset.key = bookmarkKey;
+        item.dataset.type = 'chapter';
+        
+        const content = document.createElement('div');
+        content.className = 'bookmark-item-content';
+        
+        const title = document.createElement('div');
+        title.className = 'bookmark-item-title';
+        title.textContent = `${book.name} ${chapterIndex + 1}`;
+        
+        const meta = document.createElement('div');
+        meta.className = 'bookmark-item-meta';
+        meta.innerHTML = `
+            <span>${chapter.length} verses</span>
+            <span>•</span>
+            <span>${this.translationNames[this.currentTranslation]}</span>
+        `;
+        
+        const actions = document.createElement('div');
+        actions.className = 'bookmark-item-actions';
+        
+        const gotoBtn = document.createElement('button');
+        gotoBtn.className = 'bookmark-action-btn';
+        gotoBtn.innerHTML = '<i class="fas fa-external-link-alt"></i>';
+        gotoBtn.title = 'Go to chapter';
+        gotoBtn.onclick = (e) => {
+            e.stopPropagation();
+            this.goToBook(bookIndex);
+            this.goToChapter(chapterIndex);
+            this.closeSideMenu();
+        };
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'bookmark-action-btn';
+        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+        removeBtn.title = 'Remove bookmark';
+        removeBtn.onclick = (e) => {
+            e.stopPropagation();
+            this.bookmarkedChapters.delete(bookmarkKey);
+            this.updateBookmarksUI();
+            this.updateBookmarkButton();
+            this.saveState();
+            this.showToast('Chapter bookmark removed', 'success');
+        };
+        
+        actions.appendChild(gotoBtn);
+        actions.appendChild(removeBtn);
+        
+        content.appendChild(title);
+        content.appendChild(meta);
+        item.appendChild(content);
+        item.appendChild(actions);
+        
+        // Click on item to navigate
+        item.addEventListener('click', (e) => {
+            if (!e.target.closest('.bookmark-item-actions')) {
                 this.goToBook(bookIndex);
                 this.goToChapter(chapterIndex);
                 this.closeSideMenu();
-            };
-            
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'bookmark-remove';
-            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-            removeBtn.title = 'Remove bookmark';
-            removeBtn.onclick = (e) => {
-                e.stopPropagation();
-                this.bookmarkedChapters.delete(bookmarkKey);
-                this.updateBookmarksList();
-                this.updateBookmarkButton();
-                this.saveState();
-                this.showToast('Bookmark removed', 'success');
-            };
-            
-            bookmarkItem.appendChild(bookmarkText);
-            bookmarkItem.appendChild(removeBtn);
-            this.bookmarksList.appendChild(bookmarkItem);
+            }
         });
+        
+        return item;
+    }
+    
+    createVerseBookmarkItem(verseKey, book, bookIndex, chapterIndex, verseNumber, verseText) {
+        const item = document.createElement('div');
+        item.className = 'bookmark-item';
+        item.dataset.key = verseKey;
+        item.dataset.type = 'verse';
+        
+        const content = document.createElement('div');
+        content.className = 'bookmark-item-content';
+        
+        const title = document.createElement('div');
+        title.className = 'bookmark-item-title';
+        title.textContent = `${book.name} ${chapterIndex + 1}:${verseNumber}`;
+        
+        const text = document.createElement('div');
+        text.className = 'bookmark-item-text';
+        text.textContent = verseText.length > 100 ? verseText.substring(0, 100) + '...' : verseText;
+        
+        const meta = document.createElement('div');
+        meta.className = 'bookmark-item-meta';
+        meta.innerHTML = `
+            <span>${this.translationNames[this.currentTranslation]}</span>
+        `;
+        
+        const actions = document.createElement('div');
+        actions.className = 'bookmark-item-actions';
+        
+        const gotoBtn = document.createElement('button');
+        gotoBtn.className = 'bookmark-action-btn';
+        gotoBtn.innerHTML = '<i class="fas fa-external-link-alt"></i>';
+        gotoBtn.title = 'Go to verse';
+        gotoBtn.onclick = (e) => {
+            e.stopPropagation();
+            this.goToVerse(bookIndex, chapterIndex, verseNumber);
+            this.closeSideMenu();
+        };
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'bookmark-action-btn';
+        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+        removeBtn.title = 'Remove bookmark';
+        removeBtn.onclick = (e) => {
+            e.stopPropagation();
+            this.bookmarkedVerses.delete(verseKey);
+            this.updateBookmarksUI();
+            this.loadCurrentChapter(); // Update verse display
+            this.saveState();
+            this.showToast('Verse bookmark removed', 'success');
+        };
+        
+        actions.appendChild(gotoBtn);
+        actions.appendChild(removeBtn);
+        
+        content.appendChild(title);
+        content.appendChild(text);
+        content.appendChild(meta);
+        item.appendChild(content);
+        item.appendChild(actions);
+        
+        // Click on item to navigate
+        item.addEventListener('click', (e) => {
+            if (!e.target.closest('.bookmark-item-actions')) {
+                this.goToVerse(bookIndex, chapterIndex, verseNumber);
+                this.closeSideMenu();
+            }
+        });
+        
+        return item;
     }
     
     // Highlight methods
@@ -484,7 +738,6 @@ class BibleApp {
             this.highlightedVerses.add(verseKey);
         }
         
-        // Re-render current chapter to update highlights
         this.loadCurrentChapter();
         this.saveState();
     }
@@ -505,7 +758,7 @@ class BibleApp {
                             chapterIndex,
                             verseIndex,
                             bookName: book.name,
-                            verseText: verseText.substring(0, 100) + '...'
+                            verseText: verseText.substring(0, 1000) + '...'
                         });
                     }
                 });
@@ -526,7 +779,7 @@ class BibleApp {
             return;
         }
         
-        results.slice(0, 200).forEach(result => {
+        results.slice(0, 1000).forEach(result => {
             const resultItem = document.createElement('div');
             resultItem.className = 'search-result-item';
             resultItem.innerHTML = `
@@ -539,7 +792,6 @@ class BibleApp {
                 this.goToChapter(result.chapterIndex);
                 this.closeSideMenu();
                 
-                // Scroll to verse
                 setTimeout(() => {
                     const verseElement = this.textDisplay.querySelector(`[data-verse-number="${result.verseIndex + 1}"]`);
                     if (verseElement) {
@@ -569,7 +821,6 @@ class BibleApp {
         const readCount = this.readChapters.size;
         const percentage = totalChapters > 0 ? Math.round((readCount / totalChapters) * 100) : 0;
         
-        // Update progress bar
         if (this.progressFill) {
             this.progressFill.style.width = `${percentage}%`;
         }
@@ -578,7 +829,6 @@ class BibleApp {
             this.progressBarText.textContent = `${percentage}% read`;
         }
         
-        // Update stats
         if (this.chaptersReadElement) {
             this.chaptersReadElement.textContent = readCount;
         }
@@ -587,7 +837,6 @@ class BibleApp {
             this.totalStatsElement.textContent = `${readCount} chapters • ${this.getBooksStartedCount()} books`;
         }
         
-        // Calculate books started
         const booksStarted = this.getBooksStartedCount();
         if (this.booksStartedElement) {
             this.booksStartedElement.textContent = booksStarted;
@@ -617,8 +866,6 @@ class BibleApp {
     // Sharing methods
     openShareModal() {
         this.shareModal.classList.add('active');
-        
-        // Generate share text
         const shareText = this.generateShareText();
         this.shareText.value = shareText;
     }
@@ -659,7 +906,6 @@ class BibleApp {
     copyToClipboard(text) {
         navigator.clipboard.writeText(text).catch(err => {
             console.error('Failed to copy:', err);
-            // Fallback for older browsers
             const textArea = document.createElement('textarea');
             textArea.value = text;
             document.body.appendChild(textArea);
@@ -710,6 +956,28 @@ class BibleApp {
         document.body.style.overflow = '';
     }
     
+    // NEW: Bookmark tab switching
+    switchBookmarkTab(tabName) {
+        this.bookmarkTabs.forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.tab === tabName);
+        });
+        
+        if (tabName === 'chapters') {
+            this.chapterBookmarksList.classList.add('active');
+            this.verseBookmarksList.classList.remove('active');
+        } else {
+            this.chapterBookmarksList.classList.remove('active');
+            this.verseBookmarksList.classList.add('active');
+        }
+    }
+    
+    // NEW: Bookmark current verse
+    bookmarkCurrentVerse() {
+        // For now, bookmark the first verse of current chapter
+        // You could enhance this to track which verse is currently selected/visible
+        this.toggleVerseBookmark(1);
+    }
+    
     // Utility methods
     getChapterKey() {
         return `${this.currentBookIndex}-${this.currentChapterIndex}`;
@@ -719,40 +987,40 @@ class BibleApp {
         return `${this.currentBookIndex}-${this.currentChapterIndex}-${verseNumber}`;
     }
     
-    // State management
+    // State management - UPDATED
     loadSavedState() {
         try {
-            // Load theme
             const savedTheme = localStorage.getItem('bible-theme');
             if (savedTheme) {
                 document.documentElement.setAttribute('data-theme', savedTheme);
             }
             
-            // Load translation
             const savedTranslation = localStorage.getItem('bible-translation');
             if (savedTranslation && this.translationUrls[savedTranslation]) {
                 this.currentTranslation = savedTranslation;
             }
             
-            // Load bookmarks
             const savedBookmarks = localStorage.getItem('bible-bookmarks');
             if (savedBookmarks) {
                 this.bookmarkedChapters = new Set(JSON.parse(savedBookmarks));
             }
             
-            // Load highlighted verses
+            // NEW: Load verse bookmarks
+            const savedVerseBookmarks = localStorage.getItem('bible-verse-bookmarks');
+            if (savedVerseBookmarks) {
+                this.bookmarkedVerses = new Set(JSON.parse(savedVerseBookmarks));
+            }
+            
             const savedHighlights = localStorage.getItem('bible-highlights');
             if (savedHighlights) {
                 this.highlightedVerses = new Set(JSON.parse(savedHighlights));
             }
             
-            // Load reading progress
             const savedProgress = localStorage.getItem('bible-progress');
             if (savedProgress) {
                 this.readChapters = new Set(JSON.parse(savedProgress));
             }
             
-            // Load last position
             const savedPosition = localStorage.getItem('bible-position');
             if (savedPosition) {
                 const { bookIndex, chapterIndex } = JSON.parse(savedPosition);
@@ -769,19 +1037,13 @@ class BibleApp {
     
     saveState() {
         try {
-            // Save translation
             localStorage.setItem('bible-translation', this.currentTranslation);
-            
-            // Save bookmarks
             localStorage.setItem('bible-bookmarks', JSON.stringify(Array.from(this.bookmarkedChapters)));
-            
-            // Save highlighted verses
+            // NEW: Save verse bookmarks
+            localStorage.setItem('bible-verse-bookmarks', JSON.stringify(Array.from(this.bookmarkedVerses)));
             localStorage.setItem('bible-highlights', JSON.stringify(Array.from(this.highlightedVerses)));
-            
-            // Save reading progress
             localStorage.setItem('bible-progress', JSON.stringify(Array.from(this.readChapters)));
             
-            // Save current position
             const position = {
                 bookIndex: this.currentBookIndex,
                 chapterIndex: this.currentChapterIndex
@@ -803,30 +1065,37 @@ class BibleApp {
         }, 3000);
     }
     
-    // Event listeners
+    // Event listeners - UPDATED
     setupEventListeners() {
-        // Book and chapter selection
+        // Book dropdown change
         this.bookSelect.addEventListener('change', (e) => {
             const bookIndex = parseInt(e.target.value);
-            if (!isNaN(bookIndex)) {
+            if (!isNaN(bookIndex) && this.bibleData) {
                 this.goToBook(bookIndex);
             }
         });
         
+        // Chapter dropdown change
         this.chapterSelect.addEventListener('change', (e) => {
             const chapterIndex = parseInt(e.target.value);
-            if (!isNaN(chapterIndex)) {
+            if (!isNaN(chapterIndex) && this.currentBook) {
                 this.goToChapter(chapterIndex);
             }
         });
         
         // Navigation buttons
-        this.prevButtons.forEach(btn => {
-            btn.addEventListener('click', () => this.goToPrevChapter());
+        this.prevButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.goToPrevChapter();
+            });
         });
         
-        this.nextButtons.forEach(btn => {
-            btn.addEventListener('click', () => this.goToNextChapter());
+        this.nextButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.goToNextChapter();
+            });
         });
         
         // Side menu
@@ -852,6 +1121,21 @@ class BibleApp {
         
         // Bookmarks
         this.bookmarkBtn.addEventListener('click', () => this.toggleBookmark());
+        
+        // NEW: Bookmark tab switching
+        this.bookmarkTabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const tabName = e.target.dataset.tab;
+                this.switchBookmarkTab(tabName);
+            });
+        });
+        
+        // NEW: Add current verse button
+        if (this.addCurrentVerseBtn) {
+            this.addCurrentVerseBtn.addEventListener('click', () => {
+                this.bookmarkCurrentVerse();
+            });
+        }
         
         // Progress
         if (this.clearProgressBtn) {
@@ -890,7 +1174,6 @@ class BibleApp {
         
         // Share modal buttons
         this.copyVerseBtn.addEventListener('click', () => {
-            // Copy first verse as example
             const firstVerse = this.currentBook?.chapters[this.currentChapterIndex][0];
             if (firstVerse) {
                 this.copyVerseToClipboard(1, firstVerse);
@@ -916,7 +1199,6 @@ class BibleApp {
         
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
-            // Don't trigger if user is typing in an input
             if (e.target.matches('input, textarea, select')) return;
             
             switch(e.key) {
@@ -958,6 +1240,14 @@ class BibleApp {
                         this.searchInput.focus();
                     }
                     break;
+                    
+                // NEW: Verse bookmark shortcut
+                case 'v':
+                    if (e.ctrlKey || e.metaKey) {
+                        e.preventDefault();
+                        this.bookmarkCurrentVerse();
+                    }
+                    break;
             }
         });
         
@@ -969,6 +1259,5 @@ class BibleApp {
 // Initialize the app
 document.addEventListener('DOMContentLoaded', () => {
     const app = new BibleApp();
-    window.bibleApp = app; // For debugging
-
+    window.bibleApp = app;
 });
