@@ -1,4 +1,6 @@
 // Enhanced Bible Web App with Multiple Features
+// Includes: Multiple translations, dark mode, bookmarks, search, sharing, progress tracking
+// NEW: Verse-level bookmarking and clickable bookmarks
 
 const fonts = {
     'serif': "'Times New Roman', serif",
@@ -25,8 +27,8 @@ class BibleApp {
         
         // Translation URLs
         this.translationUrls = {
-            'kjv': 'bible.json',
-            'bbe': 'bbe.json',
+            'kjv': 'https://skadigitalhub.github.io/NKJVBible/bible-kjv.json',
+            'bbe': 'https://skadigitalhub.github.io/NKJVBible/bbe.json',
             'amp': 'https://skadigitalhub.github.io/NKJVBible/amp.json',
             'nlt': 'https://raw.githubusercontent.com/bibleapi/bibleapi-bibles-json/refs/heads/master/asv.json'
         };
@@ -368,29 +370,38 @@ class BibleApp {
     }
     
     goToBook(bookIndex) {
-        if (bookIndex >= 0 && bookIndex < this.bibleData.length) {
-            this.currentBookIndex = bookIndex;
-            this.currentBook = this.bibleData[bookIndex];
-            this.currentChapterIndex = 0;
-            
-            this.populateChapterDropdown();
-            this.updateCurrentLocationDisplay();
-            this.loadCurrentChapter();
-            this.saveState();
-        }
+    if (bookIndex >= 0 && bookIndex < this.bibleData.length) {
+        this.currentBookIndex = bookIndex;
+        this.currentBook = this.bibleData[bookIndex];
+        this.currentChapterIndex = 0; // Reset to first chapter
+        
+        // Update ALL dropdowns and UI elements
+        this.populateBookDropdown();
+        this.populateChapterDropdown();
+        this.updateCurrentLocationDisplay();
+        this.loadCurrentChapter();
+        this.saveState();
+        
+        console.log(`Switched to book: ${this.currentBook.name}`);
     }
+}
     
     goToChapter(chapterIndex) {
-        if (this.currentBook && 
-            chapterIndex >= 0 && 
-            chapterIndex < this.currentBook.chapters.length) {
-            this.currentChapterIndex = chapterIndex;
-            this.updateCurrentLocationDisplay();
-            this.populateChapterDropdown();
-            this.loadCurrentChapter();
-            this.saveState();
-        }
+    if (this.currentBook && 
+        chapterIndex >= 0 && 
+        chapterIndex < this.currentBook.chapters.length) {
+        
+        this.currentChapterIndex = chapterIndex;
+        
+        // Update UI immediately
+        this.updateCurrentLocationDisplay();
+        this.populateChapterDropdown(); // Ensure dropdown updates
+        this.loadCurrentChapter();
+        this.saveState();
+        
+        this.showToast(`${this.currentBook.name} ${chapterIndex + 1}`, 'success');
     }
+}
     
     // NEW: Navigate to specific verse
     goToVerse(bookIndex, chapterIndex, verseNumber) {
@@ -769,42 +780,49 @@ class BibleApp {
     }
     
     displaySearchResults(results) {
-        this.searchResults.innerHTML = '';
-        
-        if (results.length === 0) {
-            const noResults = document.createElement('p');
-            noResults.className = 'empty-state';
-            noResults.textContent = 'No results found';
-            this.searchResults.appendChild(noResults);
-            return;
-        }
-        
-        results.slice(0, 1000).forEach(result => {
-            const resultItem = document.createElement('div');
-            resultItem.className = 'search-result-item';
-            resultItem.innerHTML = `
-                <strong>${result.bookName} ${result.chapterIndex + 1}:${result.verseIndex + 1}</strong>
-                <p>${result.verseText}</p>
-            `;
-            
-            resultItem.onclick = () => {
-                this.goToBook(result.bookIndex);
-                this.goToChapter(result.chapterIndex);
-                this.closeSideMenu();
-                
-                setTimeout(() => {
-                    const verseElement = this.textDisplay.querySelector(`[data-verse-number="${result.verseIndex + 1}"]`);
-                    if (verseElement) {
-                        verseElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        verseElement.style.animation = 'pulse 1s';
-                        setTimeout(() => verseElement.style.animation = '', 1000);
-                    }
-                }, 100);
-            };
-            
-            this.searchResults.appendChild(resultItem);
-        });
+    this.searchResults.innerHTML = '';
+    
+    if (results.length === 0) {
+        const noResults = document.createElement('p');
+        noResults.className = 'empty-state';
+        noResults.textContent = 'No results found';
+        this.searchResults.appendChild(noResults);
+        return;
     }
+    
+    results.slice(0, 1000).forEach(result => {
+        const resultItem = document.createElement('div');
+        resultItem.className = 'search-result-item';
+        resultItem.innerHTML = `
+            <strong>${result.bookName} ${result.chapterIndex + 1}:${result.verseIndex + 1}</strong>
+            <p>${result.verseText}</p>
+        `;
+        
+        resultItem.onclick = () => {
+            // Navigate to the book and chapter
+            this.goToBook(result.bookIndex);
+            this.goToChapter(result.chapterIndex);
+            this.closeSideMenu();
+            
+            // Scroll to verse after a short delay
+            setTimeout(() => {
+                const verseElement = this.textDisplay.querySelector(`[data-verse-number="${result.verseIndex + 1}"]`);
+                if (verseElement) {
+                    verseElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // Highlight the verse temporarily
+                    verseElement.style.backgroundColor = 'rgba(255, 235, 59, 0.3)';
+                    verseElement.style.transition = 'background-color 0.5s';
+                    setTimeout(() => {
+                        verseElement.style.backgroundColor = '';
+                    }, 2000);
+                }
+            }, 300);
+        };
+        
+        this.searchResults.appendChild(resultItem);
+    });
+}
     
     // Progress tracking
     markChapterAsRead() {
