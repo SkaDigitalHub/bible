@@ -1,6 +1,4 @@
 // Enhanced Bible Web App with Multiple Features
-// Includes: Multiple translations, dark mode, bookmarks, search, sharing, progress tracking
-// NEW: Verse-level bookmarking and clickable bookmarks
 
 const fonts = {
     'serif': "'Times New Roman', serif",
@@ -1279,3 +1277,4 @@ document.addEventListener('DOMContentLoaded', () => {
     const app = new BibleApp();
     window.bibleApp = app;
 });
+
