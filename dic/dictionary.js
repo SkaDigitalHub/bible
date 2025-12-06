@@ -101,12 +101,12 @@ class BibleDictionary {
     async loadXMLData() {
         try {
             // Load Hebrew Strong's XML
-            const hebrewResponse = await fetch('strong_hebrew.xml');
+            const hebrewResponse = await fetch('bible/dic/strong_hebrew.xml');
             const hebrewText = await hebrewResponse.text();
             this.hebrewData = this.parseStrongsXML(hebrewText, 'hebrew');
             
             // Load Greek Strong's XML
-            const greekResponse = await fetch('strong_greek.xml');
+            const greekResponse = await fetch('bible/dic/strong_greek.xml');
             const greekText = await greekResponse.text();
             this.greekData = this.parseStrongsXML(greekText, 'greek');
             
@@ -945,4 +945,5 @@ ${entry.greekReferences.length > 0 ? `Greek References: ${entry.greekReferences.
 document.addEventListener('DOMContentLoaded', () => {
     const dictionary = new BibleDictionary();
     window.bibleDictionary = dictionary;
+
 });
