@@ -1,4 +1,4 @@
-// dictionary.js
+// dictionary.js - Complete Fixed Version
 class BibleDictionary {
     constructor() {
         this.hebrewData = null;
@@ -7,6 +7,7 @@ class BibleDictionary {
         this.filteredEntries = [];
         this.favorites = new Set();
         this.recentSearches = [];
+        this.currentLanguage = 'all'; // 'all', 'hebrew', or 'greek'
         
         // DOM elements
         this.elements = {};
@@ -17,6 +18,8 @@ class BibleDictionary {
     
     async init() {
         try {
+            console.log('Initializing Bible Dictionary...');
+            
             // Load saved state
             this.loadSavedState();
             
@@ -32,6 +35,7 @@ class BibleDictionary {
             // Update UI
             this.updateUI();
             
+            console.log('Dictionary initialization complete');
             this.showToast('Bible Dictionary loaded successfully!', 'success');
             
         } catch (error) {
@@ -41,7 +45,7 @@ class BibleDictionary {
     }
     
     initializeDOMElements() {
-        // Get all DOM elements
+        console.log('Initializing DOM elements...');
         this.elements = {
             // Search
             searchInput: document.getElementById('dictionary-search'),
@@ -96,24 +100,38 @@ class BibleDictionary {
             // Toast
             toast: document.getElementById('toast')
         };
+        
+        // Get language-specific sections from modal
+        this.elements.pronunciationSection = document.getElementById('pronunciation-section');
+        this.elements.originalLanguageSection = document.getElementById('original-language-section');
+        this.elements.bibleReferencesSection = document.getElementById('bible-references-section');
+        this.elements.relatedTermsSection = document.getElementById('related-terms-section');
     }
     
     async loadXMLData() {
         try {
+            console.log('Loading XML data...');
+            
             // Load Hebrew Strong's XML
+            console.log('Loading Hebrew XML...');
             const hebrewResponse = await fetch('strong_hebrew.xml');
             const hebrewText = await hebrewResponse.text();
             this.hebrewData = this.parseStrongsXML(hebrewText, 'hebrew');
+            console.log(`Loaded ${this.hebrewData?.length || 0} Hebrew entries`);
             
-            // Load Greek Strong's XML
+            // Load Greek Strong's XML  
+            console.log('Loading Greek XML...');
             const greekResponse = await fetch('strong_greek.xml');
             const greekText = await greekResponse.text();
             this.greekData = this.parseStrongsXML(greekText, 'greek');
+            console.log(`Loaded ${this.greekData?.length || 0} Greek entries`);
             
             // Combine and process all entries
             this.processAllEntries();
             
-            console.log(`Loaded ${this.allEntries.length} dictionary entries`);
+            console.log(`Total entries: ${this.allEntries.length}`);
+            console.log('Sample Hebrew entry:', this.allEntries.find(e => e.language === 'hebrew'));
+            console.log('Sample Greek entry:', this.allEntries.find(e => e.language === 'greek'));
             
         } catch (error) {
             console.error('Error loading XML data:', error);
@@ -128,6 +146,8 @@ class BibleDictionary {
         const entries = [];
         const divElements = xmlDoc.getElementsByTagName('div');
         
+        console.log(`Found ${divElements.length} div elements for ${language}`);
+        
         for (let div of divElements) {
             if (div.getAttribute('type') === 'entry') {
                 const entry = this.parseEntryElement(div, language);
@@ -137,21 +157,40 @@ class BibleDictionary {
             }
         }
         
+        console.log(`Parsed ${entries.length} valid entries for ${language}`);
         return entries;
     }
     
     parseEntryElement(divElement, language) {
         try {
             const entryId = divElement.getAttribute('n');
+            if (!entryId) {
+                console.warn('No entry ID found');
+                return null;
+            }
+            
             const strongId = language === 'hebrew' ? `H${entryId}` : `G${entryId}`;
             
-            // Get the word element
-            const wordElement = divElement.getElementsByTagName('w')[0];
-            if (!wordElement) return null;
+            // Get the word element - handle both Hebrew and Greek structures
+            let wordElement = divElement.getElementsByTagName('w')[0];
+            
+            // For Greek, sometimes it's inside a foreign tag
+            if (!wordElement && language === 'greek') {
+                const foreignElements = divElement.getElementsByTagName('foreign');
+                if (foreignElements.length > 0) {
+                    wordElement = foreignElements[0].getElementsByTagName('w')[0];
+                }
+            }
+            
+            if (!wordElement) {
+                console.warn(`No word element found for ${strongId}`);
+                return null;
+            }
             
             // Extract data from attributes
-            const originalWord = wordElement.textContent || '';
-            const transliteration = wordElement.getAttribute('xlit') || '';
+            const originalWord = wordElement.textContent?.trim() || '';
+            const transliteration = wordElement.getAttribute('xlit') || 
+                                   wordElement.getAttribute('lemma') || '';
             const pronunciation = wordElement.getAttribute('POS') || '';
             const lemma = wordElement.getAttribute('lemma') || '';
             const morph = wordElement.getAttribute('morph') || '';
@@ -162,11 +201,12 @@ class BibleDictionary {
             if (list) {
                 const items = list.getElementsByTagName('item');
                 for (let item of items) {
-                    definitionItems.push(item.textContent);
+                    const text = item.textContent?.trim();
+                    if (text) definitionItems.push(text);
                 }
             }
             
-            // Get Greek references for Hebrew entries
+            // For Hebrew entries, get Greek references
             const greekReferences = [];
             if (language === 'hebrew') {
                 const foreign = divElement.getElementsByTagName('foreign')[0];
@@ -181,34 +221,58 @@ class BibleDictionary {
                 }
             }
             
+            // For Greek entries, get Hebrew references (some Greek XML might have them)
+            const hebrewReferences = [];
+            if (language === 'greek') {
+                const foreign = divElement.getElementsByTagName('foreign')[0];
+                if (foreign) {
+                    const hebrewWords = foreign.getElementsByTagName('w');
+                    for (let hw of hebrewWords) {
+                        const gloss = hw.getAttribute('gloss');
+                        if (gloss && gloss.startsWith('H:')) {
+                            hebrewReferences.push(gloss.substring(2));
+                        }
+                    }
+                }
+            }
+            
             // Create entry object
-            return {
+            const entry = {
                 id: strongId,
                 number: parseInt(entryId),
                 original: originalWord,
-                transliteration: transliteration,
+                transliteration: transliteration || strongId, // Fallback to ID if no transliteration
                 pronunciation: pronunciation,
                 lemma: lemma,
                 morphology: morph,
-                definition: definitionItems,
+                definition: definitionItems.length > 0 ? definitionItems : ['No definition available'],
                 language: language,
                 greekReferences: greekReferences,
+                hebrewReferences: hebrewReferences,
                 gloss: wordElement.getAttribute('gloss') || '',
-                searchText: `${originalWord} ${transliteration} ${pronunciation} ${lemma}`.toLowerCase()
+                searchText: `${strongId} ${originalWord} ${transliteration} ${pronunciation} ${lemma}`.toLowerCase()
             };
             
+            return entry;
+            
         } catch (error) {
-            console.error('Error parsing entry:', error);
+            console.error(`Error parsing ${language} entry:`, error);
+            console.log('Problematic div:', divElement.outerHTML);
             return null;
         }
     }
     
     processAllEntries() {
+        console.log('Processing all entries...');
+        
+        // Filter out null entries and ensure we have valid data
+        const validHebrew = (this.hebrewData || []).filter(entry => entry !== null);
+        const validGreek = (this.greekData || []).filter(entry => entry !== null);
+        
+        console.log(`Valid Hebrew: ${validHebrew.length}, Valid Greek: ${validGreek.length}`);
+        
         // Combine Hebrew and Greek entries
-        this.allEntries = [
-            ...(this.hebrewData || []),
-            ...(this.greekData || [])
-        ];
+        this.allEntries = [...validHebrew, ...validGreek];
         
         // Sort by Strong's number
         this.allEntries.sort((a, b) => a.number - b.number);
@@ -216,14 +280,73 @@ class BibleDictionary {
         // Update alphabet navigation
         this.populateAlphabetNavigation();
         
-        // Initial display
+        // Initial display - show all entries
         this.filteredEntries = [...this.allEntries];
+        
+        // Update language stats
+        this.updateLanguageStats();
+        
+        console.log(`Total valid entries: ${this.allEntries.length}`);
+    }
+    
+    updateLanguageStats() {
+        if (!this.allEntries || this.allEntries.length === 0) {
+            console.warn('No entries to count');
+            return;
+        }
+        
+        const hebrewCount = this.allEntries.filter(e => e.language === 'hebrew').length;
+        const greekCount = this.allEntries.filter(e => e.language === 'greek').length;
+        
+        console.log(`Language stats: ${hebrewCount} Hebrew, ${greekCount} Greek`);
+        
+        // Update UI elements if they exist
+        const hebrewElement = document.getElementById('hebrew-count');
+        const greekElement = document.getElementById('greek-count');
+        const totalTermsElement = document.getElementById('total-terms');
+        
+        if (hebrewElement) {
+            hebrewElement.textContent = hebrewCount;
+            console.log('Updated Hebrew count:', hebrewCount);
+        }
+        if (greekElement) {
+            greekElement.textContent = greekCount;
+            console.log('Updated Greek count:', greekCount);
+        }
+        if (totalTermsElement) {
+            totalTermsElement.textContent = this.allEntries.length;
+            console.log('Updated total terms:', this.allEntries.length);
+        }
+        
+        // Also update the language filter dropdown
+        if (this.elements.filterType) {
+            // Make sure options exist
+            const hasHebrew = this.elements.filterType.querySelector('option[value="hebrew"]');
+            const hasGreek = this.elements.filterType.querySelector('option[value="greek"]');
+            
+            if (!hasHebrew) {
+                const hebrewOption = document.createElement('option');
+                hebrewOption.value = 'hebrew';
+                hebrewOption.textContent = `Hebrew (${hebrewCount})`;
+                this.elements.filterType.appendChild(hebrewOption);
+            } else {
+                hasHebrew.textContent = `Hebrew (${hebrewCount})`;
+            }
+            
+            if (!hasGreek) {
+                const greekOption = document.createElement('option');
+                greekOption.value = 'greek';
+                greekOption.textContent = `Greek (${greekCount})`;
+                this.elements.filterType.appendChild(greekOption);
+            } else {
+                hasGreek.textContent = `Greek (${greekCount})`;
+            }
+        }
     }
     
     populateAlphabetNavigation() {
         if (!this.elements.alphabetNav) return;
         
-        // Clear existing
         this.elements.alphabetNav.innerHTML = '';
         
         // Add "All" button
@@ -237,7 +360,7 @@ class BibleDictionary {
         // Get unique first letters from transliterations
         const letters = new Set();
         this.allEntries.forEach(entry => {
-            if (entry.transliteration) {
+            if (entry.transliteration && entry.transliteration.trim()) {
                 const firstLetter = entry.transliteration.charAt(0).toUpperCase();
                 if (/[A-Z]/.test(firstLetter)) {
                     letters.add(firstLetter);
@@ -257,6 +380,8 @@ class BibleDictionary {
             letterBtn.onclick = () => this.filterByAlphabet(letter);
             this.elements.alphabetNav.appendChild(letterBtn);
         });
+        
+        console.log(`Alphabet navigation: ${sortedLetters.length} letters`);
     }
     
     filterByAlphabet(letter) {
@@ -269,33 +394,65 @@ class BibleDictionary {
         if (letter === 'all') {
             this.filteredEntries = [...this.allEntries];
         } else {
-            this.filteredEntries = this.allEntries.filter(entry => 
-                entry.transliteration && 
-                entry.transliteration.charAt(0).toUpperCase() === letter
-            );
+            this.filteredEntries = this.allEntries.filter(entry => {
+                return entry.transliteration && 
+                       entry.transliteration.charAt(0).toUpperCase() === letter;
+            });
         }
         
         // Update filter display
-        this.elements.currentFilter.textContent = letter === 'all' ? 'All Terms' : `Letter ${letter}`;
+        if (this.elements.currentFilter) {
+            this.elements.currentFilter.textContent = letter === 'all' ? 'All Terms' : `Letter ${letter}`;
+        }
         
-        // Re-apply current search/sort
+        // Apply current filters
         this.applyCurrentFilters();
     }
     
     filterByType(type) {
-        if (type === 'all') {
-            this.filteredEntries = [...this.allEntries];
-        } else {
-            this.filteredEntries = this.allEntries.filter(entry => 
-                entry.language === type
-            );
+        console.log(`Filtering by type: ${type}`);
+        
+        // Update current language
+        this.currentLanguage = type;
+        
+        // Update active category tags
+        if (this.elements.categoryTags) {
+            this.elements.categoryTags.forEach(tag => {
+                tag.classList.toggle('active', tag.dataset.type === type);
+            });
         }
         
-        // Update filter display
-        this.elements.currentFilter.textContent = type === 'all' ? 'All Terms' : 
-            type === 'hebrew' ? 'Hebrew Terms' : 'Greek Terms';
+        // Update filter dropdown
+        if (this.elements.filterType) {
+            this.elements.filterType.value = type;
+        }
         
+        if (type === 'all') {
+            this.filteredEntries = [...this.allEntries];
+            if (this.elements.currentFilter) {
+                this.elements.currentFilter.textContent = 'All Languages';
+            }
+        } else {
+            this.filteredEntries = this.allEntries.filter(entry => entry.language === type);
+            
+            if (this.elements.currentFilter) {
+                if (type === 'hebrew') {
+                    this.elements.currentFilter.textContent = 'Hebrew Terms';
+                } else if (type === 'greek') {
+                    this.elements.currentFilter.textContent = 'Greek Terms';
+                }
+            }
+        }
+        
+        console.log(`Filtered to ${this.filteredEntries.length} ${type} entries`);
+        
+        // Apply current filters
         this.applyCurrentFilters();
+        
+        // Show toast notification
+        const langName = type === 'hebrew' ? 'Hebrew' : 
+                        type === 'greek' ? 'Greek' : 'All';
+        this.showToast(`Showing ${langName} terms`, 'success');
     }
     
     searchDictionary(query) {
@@ -306,6 +463,7 @@ class BibleDictionary {
         }
         
         const searchTerm = query.trim().toLowerCase();
+        console.log(`Searching for: "${searchTerm}"`);
         
         // Add to recent searches
         this.addToRecentSearches(searchTerm);
@@ -313,15 +471,17 @@ class BibleDictionary {
         // Search through entries
         this.filteredEntries = this.allEntries.filter(entry => {
             return (
-                entry.original.toLowerCase().includes(searchTerm) ||
-                entry.transliteration.toLowerCase().includes(searchTerm) ||
-                entry.pronunciation.toLowerCase().includes(searchTerm) ||
-                entry.lemma.toLowerCase().includes(searchTerm) ||
-                entry.definition.some(def => def.toLowerCase().includes(searchTerm))
+                (entry.original && entry.original.toLowerCase().includes(searchTerm)) ||
+                (entry.transliteration && entry.transliteration.toLowerCase().includes(searchTerm)) ||
+                (entry.pronunciation && entry.pronunciation.toLowerCase().includes(searchTerm)) ||
+                (entry.lemma && entry.lemma.toLowerCase().includes(searchTerm)) ||
+                (entry.definition && entry.definition.some(def => def.toLowerCase().includes(searchTerm)))
             );
         });
         
-        // Sort by relevance (simple implementation)
+        console.log(`Found ${this.filteredEntries.length} results`);
+        
+        // Sort by relevance
         this.filteredEntries.sort((a, b) => {
             const aScore = this.calculateRelevance(a, searchTerm);
             const bScore = this.calculateRelevance(b, searchTerm);
@@ -337,25 +497,33 @@ class BibleDictionary {
     calculateRelevance(entry, searchTerm) {
         let score = 0;
         
+        // Exact match in Strong's ID
+        if (entry.id.toLowerCase() === searchTerm) score += 100;
+        
         // Exact match in original word
-        if (entry.original.toLowerCase() === searchTerm) score += 100;
+        if (entry.original && entry.original.toLowerCase() === searchTerm) score += 90;
         
         // Exact match in transliteration
-        if (entry.transliteration.toLowerCase() === searchTerm) score += 80;
+        if (entry.transliteration && entry.transliteration.toLowerCase() === searchTerm) score += 80;
+        
+        // Contains in Strong's ID
+        if (entry.id.toLowerCase().includes(searchTerm)) score += 70;
         
         // Contains in original word
-        if (entry.original.toLowerCase().includes(searchTerm)) score += 50;
+        if (entry.original && entry.original.toLowerCase().includes(searchTerm)) score += 50;
         
         // Contains in transliteration
-        if (entry.transliteration.toLowerCase().includes(searchTerm)) score += 30;
+        if (entry.transliteration && entry.transliteration.toLowerCase().includes(searchTerm)) score += 30;
         
         // Contains in pronunciation
-        if (entry.pronunciation.toLowerCase().includes(searchTerm)) score += 20;
+        if (entry.pronunciation && entry.pronunciation.toLowerCase().includes(searchTerm)) score += 20;
         
         // Contains in definition
-        entry.definition.forEach(def => {
-            if (def.toLowerCase().includes(searchTerm)) score += 10;
-        });
+        if (entry.definition) {
+            entry.definition.forEach(def => {
+                if (def.toLowerCase().includes(searchTerm)) score += 10;
+            });
+        }
         
         return score;
     }
@@ -392,7 +560,7 @@ class BibleDictionary {
     
     applyCurrentFilters() {
         // Apply sorting
-        const sortBy = this.elements.sortSelect?.value || 'name-asc';
+        const sortBy = this.elements.sortSelect?.value || 'number-asc';
         this.sortEntries(sortBy);
         
         // Update display
@@ -403,27 +571,40 @@ class BibleDictionary {
     }
     
     sortEntries(sortBy) {
+        console.log(`Sorting by: ${sortBy}`);
+        
         switch(sortBy) {
+            case 'number-asc':
+                this.filteredEntries.sort((a, b) => a.number - b.number);
+                break;
+                
+            case 'number-desc':
+                this.filteredEntries.sort((a, b) => b.number - a.number);
+                break;
+                
             case 'name-asc':
-                this.filteredEntries.sort((a, b) => 
-                    a.transliteration.localeCompare(b.transliteration)
-                );
+                this.filteredEntries.sort((a, b) => {
+                    const aName = a.transliteration || a.id;
+                    const bName = b.transliteration || b.id;
+                    return aName.localeCompare(bName);
+                });
                 break;
                 
             case 'name-desc':
-                this.filteredEntries.sort((a, b) => 
-                    b.transliteration.localeCompare(a.transliteration)
-                );
+                this.filteredEntries.sort((a, b) => {
+                    const aName = a.transliteration || a.id;
+                    const bName = b.transliteration || b.id;
+                    return bName.localeCompare(aName);
+                });
                 break;
                 
-            case 'relevance':
-                // Already sorted by relevance in search
-                break;
-                
-            case 'type':
-                this.filteredEntries.sort((a, b) => 
-                    a.language.localeCompare(b.language)
-                );
+            case 'language':
+                this.filteredEntries.sort((a, b) => {
+                    if (a.language === b.language) {
+                        return a.number - b.number;
+                    }
+                    return a.language === 'hebrew' ? -1 : 1;
+                });
                 break;
                 
             default:
@@ -432,45 +613,72 @@ class BibleDictionary {
     }
     
     displayEntries() {
-        if (!this.elements.dictionaryEntries) return;
-        
-        this.elements.dictionaryEntries.innerHTML = '';
-        
-        if (this.filteredEntries.length === 0) {
-            this.elements.noResults.style.display = 'block';
+        if (!this.elements.dictionaryEntries) {
+            console.error('Dictionary entries container not found!');
             return;
         }
         
-        this.elements.noResults.style.display = 'none';
+        console.log(`Displaying ${this.filteredEntries.length} entries`);
         
-        this.filteredEntries.forEach(entry => {
-            const entryElement = this.createEntryElement(entry);
-            this.elements.dictionaryEntries.appendChild(entryElement);
+        // Clear the container
+        this.elements.dictionaryEntries.innerHTML = '';
+        
+        if (this.filteredEntries.length === 0) {
+            if (this.elements.noResults) {
+                this.elements.noResults.style.display = 'block';
+            }
+            console.log('No entries to display');
+            return;
+        }
+        
+        if (this.elements.noResults) {
+            this.elements.noResults.style.display = 'none';
+        }
+        
+        // Create and append entry elements
+        this.filteredEntries.forEach((entry, index) => {
+            if (index < 100) { // Limit display for performance
+                const entryElement = this.createEntryElement(entry);
+                this.elements.dictionaryEntries.appendChild(entryElement);
+            }
         });
+        
+        // Show message if there are more entries
+        if (this.filteredEntries.length > 100) {
+            const moreMsg = document.createElement('div');
+            moreMsg.className = 'more-results';
+            moreMsg.innerHTML = `<p>Showing 100 of ${this.filteredEntries.length} entries. Use search to find specific terms.</p>`;
+            this.elements.dictionaryEntries.appendChild(moreMsg);
+        }
+        
+        console.log('Display complete');
     }
     
     createEntryElement(entry) {
         const div = document.createElement('div');
         div.className = 'dictionary-entry';
         div.dataset.id = entry.id;
+        div.dataset.language = entry.language;
         
         const isFavorite = this.favorites.has(entry.id);
         
         // Create preview text (first definition item)
-        const previewText = entry.definition.length > 0 
+        const previewText = entry.definition && entry.definition.length > 0 
             ? entry.definition[0].substring(0, 150) + (entry.definition[0].length > 150 ? '...' : '')
             : 'No definition available';
         
         div.innerHTML = `
             <div class="entry-header">
                 <div>
-                    <div class="entry-title">${entry.transliteration || entry.original}</div>
+                    <div class="entry-title">${entry.transliteration || entry.id}</div>
                     <div class="entry-subtitle">
                         <span class="entry-id">${entry.id}</span>
-                        ${entry.original ? `<span class="entry-original">${entry.original}</span>` : ''}
+                        ${entry.original ? `<span class="entry-original ${entry.language === 'hebrew' ? 'rtl' : ''}">${entry.original}</span>` : ''}
                     </div>
                 </div>
-                <div class="entry-type-badge ${entry.language}">${entry.language.toUpperCase()}</div>
+                <div class="entry-type-badge ${entry.language}">
+                    ${entry.language === 'hebrew' ? 'H' : 'G'}
+                </div>
             </div>
             
             <div class="entry-preview">
@@ -480,7 +688,7 @@ class BibleDictionary {
             <div class="entry-footer">
                 <div class="entry-references">
                     <i class="fas fa-book"></i>
-                    <span>${entry.definition.length} definition${entry.definition.length !== 1 ? 's' : ''}</span>
+                    <span>${entry.definition ? entry.definition.length : 0} definition${entry.definition && entry.definition.length !== 1 ? 's' : ''}</span>
                 </div>
                 <button class="entry-favorite-btn ${isFavorite ? 'favorited' : ''}" 
                         data-id="${entry.id}"
@@ -519,48 +727,62 @@ class BibleDictionary {
     openEntryModal(entry) {
         if (!this.elements.entryModal) return;
         
+        console.log('Opening modal for:', entry.id);
+        
         // Update modal content
-        this.elements.modalTerm.textContent = entry.transliteration || entry.original;
+        this.elements.modalTerm.textContent = entry.transliteration || entry.id;
         this.elements.modalType.textContent = entry.language.toUpperCase();
         this.elements.modalType.className = `entry-type-badge ${entry.language}`;
         
         // Update definition
-        const definitionHtml = entry.definition.map(item => 
+        const definitionHtml = entry.definition ? entry.definition.map(item => 
             `<div class="definition-item">${this.escapeHtml(item)}</div>`
-        ).join('');
+        ).join('') : '<p>No definition available</p>';
         this.elements.modalDefinition.innerHTML = definitionHtml;
         
         // Update pronunciation
-        if (entry.pronunciation) {
+        if (entry.pronunciation && entry.pronunciation.trim()) {
             this.elements.modalPronunciation.textContent = entry.pronunciation;
-            this.elements.pronunciationSection.style.display = 'block';
+            if (this.elements.pronunciationSection) {
+                this.elements.pronunciationSection.style.display = 'block';
+            }
         } else {
-            this.elements.pronunciationSection.style.display = 'none';
+            if (this.elements.pronunciationSection) {
+                this.elements.pronunciationSection.style.display = 'none';
+            }
         }
         
         // Update original language
-        if (entry.original) {
+        if (entry.original && entry.original.trim()) {
             let originalText = entry.original;
             if (entry.language === 'hebrew') {
-                originalText += ` (Hebrew)`;
+                originalText = `<span class="rtl">${originalText}</span> (Hebrew)`;
             } else if (entry.language === 'greek') {
-                originalText += ` (Greek)`;
+                originalText = `<span class="rtl">${originalText}</span> (Greek)`;
             }
-            this.elements.modalOriginal.textContent = originalText;
-            this.elements.originalLanguageSection.style.display = 'block';
+            this.elements.modalOriginal.innerHTML = originalText;
+            if (this.elements.originalLanguageSection) {
+                this.elements.originalLanguageSection.style.display = 'block';
+            }
         } else {
-            this.elements.originalLanguageSection.style.display = 'none';
+            if (this.elements.originalLanguageSection) {
+                this.elements.originalLanguageSection.style.display = 'none';
+            }
         }
         
         // Update Greek references (for Hebrew entries)
-        if (entry.language === 'hebrew' && entry.greekReferences.length > 0) {
+        if (entry.language === 'hebrew' && entry.greekReferences && entry.greekReferences.length > 0) {
             const referencesHtml = entry.greekReferences.map(ref => 
                 `<span class="bible-ref" data-ref="G${ref}">G${ref}</span>`
             ).join('');
             this.elements.modalReferences.innerHTML = referencesHtml;
-            this.elements.bibleReferencesSection.style.display = 'block';
+            if (this.elements.bibleReferencesSection) {
+                this.elements.bibleReferencesSection.style.display = 'block';
+            }
         } else {
-            this.elements.bibleReferencesSection.style.display = 'none';
+            if (this.elements.bibleReferencesSection) {
+                this.elements.bibleReferencesSection.style.display = 'none';
+            }
         }
         
         // Update favorite button
@@ -683,7 +905,7 @@ class BibleDictionary {
             const item = document.createElement('div');
             item.className = 'favorite-term-item';
             item.innerHTML = `
-                <span class="favorite-term-name">${entry.transliteration || entry.original}</span>
+                <span class="favorite-term-name">${entry.transliteration || entry.id}</span>
                 <span class="favorite-term-type">${entry.id}</span>
             `;
             
@@ -700,10 +922,13 @@ class BibleDictionary {
         if (!this.elements.totalTerms) return;
         
         this.elements.totalTerms.textContent = this.allEntries.length;
-        this.elements.viewingStats.textContent = 
-            `${this.filteredEntries.length} of ${this.allEntries.length} entries`;
         
-        // Update progress bar (simple example)
+        if (this.elements.viewingStats) {
+            this.elements.viewingStats.textContent = 
+                `${this.filteredEntries.length} of ${this.allEntries.length} entries`;
+        }
+        
+        // Update progress bar
         const progressPercent = Math.min(100, 
             (this.filteredEntries.length / this.allEntries.length) * 100
         );
@@ -730,16 +955,17 @@ class BibleDictionary {
     
     formatEntryForClipboard(entry) {
         return `
-${entry.id}: ${entry.transliteration} (${entry.original})
+${entry.id}: ${entry.transliteration || entry.id} (${entry.original || 'N/A'})
 Language: ${entry.language.toUpperCase()}
-Pronunciation: ${entry.pronunciation}
-Transliteration: ${entry.transliteration}
-Lemma: ${entry.lemma}
+Pronunciation: ${entry.pronunciation || 'N/A'}
+Transliteration: ${entry.transliteration || 'N/A'}
+Lemma: ${entry.lemma || 'N/A'}
 
 Definition:
-${entry.definition.map((item, i) => `${i + 1}. ${item}`).join('\n')}
+${entry.definition ? entry.definition.map((item, i) => `${i + 1}. ${item}`).join('\n') : 'No definition available'}
 
-${entry.greekReferences.length > 0 ? `Greek References: ${entry.greekReferences.map(r => 'G' + r).join(', ')}` : ''}
+${entry.greekReferences && entry.greekReferences.length > 0 ? 
+    `Greek References: ${entry.greekReferences.map(r => 'G' + r).join(', ')}` : ''}
         `.trim();
     }
     
@@ -748,7 +974,7 @@ ${entry.greekReferences.length > 0 ? `Greek References: ${entry.greekReferences.
         
         if (navigator.share) {
             navigator.share({
-                title: `${entry.id} - ${entry.transliteration}`,
+                title: `${entry.id} - ${entry.transliteration || entry.id}`,
                 text: text.substring(0, 100) + '...',
                 url: window.location.href
             }).catch(err => {
@@ -760,6 +986,8 @@ ${entry.greekReferences.length > 0 ? `Greek References: ${entry.greekReferences.
     }
     
     setupEventListeners() {
+        console.log('Setting up event listeners...');
+        
         // Search
         if (this.elements.searchInput) {
             this.elements.searchInput.addEventListener('keypress', (e) => {
@@ -789,17 +1017,14 @@ ${entry.greekReferences.length > 0 ? `Greek References: ${entry.greekReferences.
         }
         
         // Category tags
-        this.elements.categoryTags?.forEach(tag => {
-            tag.addEventListener('click', (e) => {
-                const type = e.target.dataset.type;
-                this.filterByType(type);
-                
-                // Update active state
-                this.elements.categoryTags.forEach(t => 
-                    t.classList.toggle('active', t === e.target)
-                );
+        if (this.elements.categoryTags) {
+            this.elements.categoryTags.forEach(tag => {
+                tag.addEventListener('click', (e) => {
+                    const type = e.target.dataset.type;
+                    this.filterByType(type);
+                });
             });
-        });
+        }
         
         // Side menu
         if (this.elements.menuToggle) {
@@ -887,15 +1112,18 @@ ${entry.greekReferences.length > 0 ? `Greek References: ${entry.greekReferences.
     }
     
     updateUI() {
+        console.log('Updating UI...');
         this.displayEntries();
         this.updateDisplayStats();
         this.updateRecentSearchesList();
         this.updateFavoritesList();
         this.updateSearchStats('');
+        this.updateLanguageStats();
     }
     
     // Utility methods
     escapeHtml(text) {
+        if (!text) return '';
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
@@ -943,8 +1171,7 @@ ${entry.greekReferences.length > 0 ? `Greek References: ${entry.greekReferences.
 
 // Initialize the dictionary
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing dictionary...');
     const dictionary = new BibleDictionary();
     window.bibleDictionary = dictionary;
-
 });
-
