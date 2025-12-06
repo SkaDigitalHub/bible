@@ -162,6 +162,119 @@ body {
     background: var(--hover-bg);
 }
 
+/* ===== STUDY TOOLS LINK STYLES ===== */
+.study-tools-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.tool-link-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: var(--hover-bg);
+    color: var(--text-color);
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    width: 100%;
+}
+
+.tool-link-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateX(2px);
+}
+
+.tool-link-btn i:first-child {
+    font-size: 1rem;
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+.tool-link-btn span {
+    flex: 1;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.tool-icon {
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+.tools-description {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    line-height: 1.4;
+    margin: 5px 0 0 0;
+    text-align: center;
+    font-style: italic;
+}
+
+/* Specific colors for each tool */
+.dictionary-link:hover {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border-color: #3498db;
+}
+
+.notepad-link:hover {
+    background: linear-gradient(135deg, #27ae60, #219653);
+    border-color: #27ae60;
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .tool-link-btn {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .tool-link-btn:hover {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .tool-link-btn {
+        padding: 8px 10px;
+    }
+    
+    .tool-link-btn span {
+        font-size: 0.85rem;
+    }
+    
+    .tools-description {
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .tool-link-btn {
+        padding: 6px 8px;
+    }
+    
+    .tool-link-btn i:first-child {
+        font-size: 0.9rem;
+        margin-right: 8px;
+    }
+    
+    .tool-link-btn span {
+        font-size: 0.8rem;
+    }
+    
+    .tool-icon {
+        font-size: 0.7rem;
+    }
+}
+
 /* ===== SEARCH HIGHLIGHT STYLES ===== */
 .search-highlight {
     background-color: rgba(52, 152, 219, 0.3) !important;
