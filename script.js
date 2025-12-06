@@ -55,6 +55,7 @@ class BibleApp {
             'bbe': 'BBE - Bible in Basic English',
             'amp': 'AMP - Amplified Bible',
             'nlt': 'NLT - New Living Translation',
+            'niv': 'NIV - New International Version',
             'asv': 'ASV - America Standard Version',
             'gn': 'GNT - GoodNews Bible',
         };
