@@ -6,16 +6,37 @@
     <title>Ska Bible App</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#3498db"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="theme-color" content="#3498db">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <!-- Side Menu -->
     <div class="side-menu" id="sideMenu">
         <div class="menu-header">
-            <h3><i class="fas fa-bible"></i>Ska Bible App</h3>
+            <h3><i class="fas fa-bible"></i> Bible App</h3>
             <button class="close-menu" id="closeMenu">
                 <i class="fas fa-times"></i>
             </button>
+        </div>
+        
+        <!-- ADDED: DICTIONARY AND NOTEPAD LINKS -->
+        <div class="menu-section">
+            <h4><i class="fas fa-tools"></i> Study Tools</h4>
+            <div class="study-tools-links">
+                <a href="dictionary.html" class="tool-link-btn dictionary-link" title="Open Bible Dictionary">
+                    <i class="fas fa-book-open"></i>
+                    <span>Bible Dictionary</span>
+                    <i class="fas fa-external-link-alt tool-icon"></i>
+                </a>
+                <a href="https://skadigitalhub.github.io/skanote/smartpad" class="tool-link-btn notepad-link" title="Open Study Notepad" target="_blank">
+                    <i class="fas fa-edit"></i>
+                    <span>Study Notepad</span>
+                    <i class="fas fa-external-link-alt tool-icon"></i>
+                </a>
+            </div>
+            <p class="tools-description">
+                Enhance your Bible study with dictionary and note-taking tools
+            </p>
         </div>
         
         <div class="menu-section">
@@ -42,32 +63,32 @@
         </div>
         
         <!-- In the bookmarks menu section -->
-<div class="menu-section">
-    <h4><i class="fas fa-bookmark"></i> Bookmarks</h4>
-    
-    <div class="bookmark-tabs">
-        <button class="bookmark-tab active" data-tab="chapters">Chapters</button>
-        <button class="bookmark-tab" data-tab="verses">Verses</button>
-    </div>
-    
-    <div class="bookmarks-content">
-        <!-- Chapter Bookmarks -->
-        <div id="chapter-bookmarks" class="bookmark-list active">
-            <p class="empty-state">No chapter bookmarks yet</p>
+        <div class="menu-section">
+            <h4><i class="fas fa-bookmark"></i> Bookmarks</h4>
+            
+            <div class="bookmark-tabs">
+                <button class="bookmark-tab active" data-tab="chapters">Chapters</button>
+                <button class="bookmark-tab" data-tab="verses">Verses</button>
+            </div>
+            
+            <div class="bookmarks-content">
+                <!-- Chapter Bookmarks -->
+                <div id="chapter-bookmarks" class="bookmark-list active">
+                    <p class="empty-state">No chapter bookmarks yet</p>
+                </div>
+                
+                <!-- Verse Bookmarks -->
+                <div id="verse-bookmarks" class="bookmark-list">
+                    <p class="empty-state">No verse bookmarks yet</p>
+                </div>
+            </div>
+            
+            <div class="bookmark-actions">
+                <button id="add-current-verse" class="small-btn">
+                    <i class="fas fa-plus"></i> Bookmark Current Verse
+                </button>
+            </div>
         </div>
-        
-        <!-- Verse Bookmarks -->
-        <div id="verse-bookmarks" class="bookmark-list">
-            <p class="empty-state">No verse bookmarks yet</p>
-        </div>
-    </div>
-    
-    <div class="bookmark-actions">
-        <button id="add-current-verse" class="small-btn">
-            <i class="fas fa-plus"></i> Bookmark Current Verse
-        </button>
-    </div>
-</div>
         
         <div class="menu-section">
             <h4><i class="fas fa-chart-line"></i> Reading Progress</h4>
@@ -104,14 +125,6 @@
                 </label>
             </div>
             <br>
-            <!-- Footer -->
-        <footer>
-            <div class="footer-content">
-                <div class="label-text" onclick="window.open('https://skadigitalhub.github.io/skanote/smartpad', '_target')">
-                    Dictionary
-                </div>
-            </div>
-        </footer>
         </div>
     </div>
     
@@ -127,7 +140,7 @@
                     <i class="fas fa-bars"></i>
                 </button>
                 <div class="header-title">
-                    <h1><i class="fas fa-bible"></i> Bible App</h1>
+                    <h1><i class="fas fa-bible"></i> Ska Bible App</h1>
                     <div class="current-location-header">
                         <span id="current-translation">KJV</span> • 
                         <span id="current-book-header">Genesis</span> 
