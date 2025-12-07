@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ska Study Notepad</title>
+    <link rel="stylesheet" href="notepad.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#27ae60">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Side Menu -->
+    <div class="side-menu" id="sideMenu">
+        <div class="menu-header">
+            <h3><i class="fas fa-edit"></i> Study Notepad</h3>
+            <button class="close-menu" id="closeMenu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <!-- Bible App Link -->
+        <div class="menu-section">
+            <h4><i class="fas fa-bible"></i> Bible Tools</h4>
+            <div class="study-tools-links">
+                <a href="index.html" class="tool-link-btn bible-link" title="Open Bible Reader">
+                    <i class="fas fa-book-bible"></i>
+                    <span>Bible Reader</span>
+                    <i class="fas fa-external-link-alt tool-icon"></i>
+                </a>
+                <a href="dictionary.html" class="tool-link-btn dictionary-link" title="Open Bible Dictionary">
+                    <i class="fas fa-book-open"></i>
+                    <span>Bible Dictionary</span>
+                    <i class="fas fa-external-link-alt tool-icon"></i>
+                </a>
+            </div>
+            <p class="tools-description">
+                Switch between Bible study tools
+            </p>
+        </div>
+        
+        <!-- Notes Management -->
+        <div class="menu-section">
+            <h4><i class="fas fa-folder"></i> Notes</h4>
+            <div class="notes-actions">
+                <button id="new-note-btn" class="small-btn">
+                    <i class="fas fa-plus"></i> New Note
+                </button>
+                <button id="import-notes-btn" class="small-btn">
+                    <i class="fas fa-upload"></i> Import
+                </button>
+                <button id="export-notes-btn" class="small-btn">
+                    <i class="fas fa-download"></i> Export All
+                </button>
+            </div>
+            
+            <div class="notes-filter">
+                <input type="text" id="notes-search" placeholder="Search notes..." class="search-box">
+            </div>
+            
+            <div class="notes-list-container">
+                <div id="notes-list" class="notes-list">
+                    <p class="empty-state">No notes yet. Create your first note!</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Categories/Tags -->
+        <div class="menu-section">
+            <h4><i class="fas fa-tags"></i> Categories</h4>
+            <div class="categories-container">
+                <div class="category-tags">
+                    <button class="category-tag active" data-category="all">All Notes</button>
+                    <button class="category-tag" data-category="bible-study">Bible Study</button>
+                    <button class="category-tag" data-category="sermon">Sermon Notes</button>
+                    <button class="category-tag" data-category="prayer">Prayer</button>
+                    <button class="category-tag" data-category="devotional">Devotional</button>
+                    <button class="category-tag" data-category="personal">Personal</button>
+                </div>
+                <div class="add-category">
+                    <input type="text" id="new-category" placeholder="New category...">
+                    <button id="add-category-btn" class="small-btn">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Settings -->
+        <div class="menu-section">
+            <h4><i class="fas fa-cog"></i> Settings</h4>
+            <div class="settings-options">
+                <label class="switch">
+                    <input type="checkbox" id="dark-mode-toggle">
+                    <span class="slider"></span>
+                    <span class="label-text">Dark Mode</span>
+                </label>
+                <label class="switch">
+                    <input type="checkbox" id="auto-save-toggle" checked>
+                    <span class="slider"></span>
+                    <span class="label-text">Auto-save</span>
+                </label>
+                <label class="switch">
+                    <input type="checkbox" id="spell-check-toggle" checked>
+                    <span class="slider"></span>
+                    <span class="label-text">Spell Check</span>
+                </label>
+                <label class="switch">
+                    <input type="checkbox" id="rich-text-toggle">
+                    <span class="slider"></span>
+                    <span class="label-text">Rich Text Editor</span>
+                </label>
+            </div>
+            
+            <div class="backup-options">
+                <button id="backup-notes-btn" class="small-btn">
+                    <i class="fas fa-save"></i> Backup Notes
+                </button>
+                <button id="restore-notes-btn" class="small-btn">
+                    <i class="fas fa-history"></i> Restore Backup
+                </button>
+                <button id="clear-all-notes-btn" class="small-btn danger">
+                    <i class="fas fa-trash"></i> Clear All
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Overlay for mobile menu -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+    
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="header-title">
+                    <h1><i class="fas fa-edit"></i> Study Notepad</h1>
+                    <div class="current-location-header">
+                        <span id="current-note-title">Untitled Note</span>
+                        <span id="note-stats">0 words • 0 characters</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="header-btn" id="themeToggle" title="Toggle Theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="header-btn" id="saveNoteBtn" title="Save Note">
+                    <i class="fas fa-save"></i>
+                </button>
+                <button class="header-btn" id="formattingBtn" title="Formatting Options">
+                    <i class="fas fa-bold"></i>
+                </button>
+                <button class="header-btn" id="printNoteBtn" title="Print Note">
+                    <i class="fas fa-print"></i>
+                </button>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <main>
+            <!-- Quick Actions Bar -->
+            <div class="quick-nav">
+                <div class="nav-group">
+                    <label for="note-title"><i class="fas fa-heading"></i> Title:</label>
+                    <input type="text" id="note-title" placeholder="Enter note title..." value="Untitled Note">
+                </div>
+                
+                <div class="nav-group">
+                    <label for="note-category"><i class="fas fa-tag"></i> Category:</label>
+                    <select id="note-category">
+                        <option value="bible-study">Bible Study</option>
+                        <option value="sermon">Sermon Notes</option>
+                        <option value="prayer">Prayer</option>
+                        <option value="devotional">Devotional</option>
+                        <option value="personal">Personal</option>
+                    </select>
+                </div>
+                
+                <div class="nav-buttons">
+                    <button id="bold-btn" class="nav-btn" title="Bold (Ctrl+B)">
+                        <i class="fas fa-bold"></i>
+                    </button>
+                    <button id="italic-btn" class="nav-btn" title="Italic (Ctrl+I)">
+                        <i class="fas fa-italic"></i>
+                    </button>
+                    <button id="underline-btn" class="nav-btn" title="Underline (Ctrl+U)">
+                        <i class="fas fa-underline"></i>
+                    </button>
+                    <button id="list-btn" class="nav-btn" title="Bulleted List">
+                        <i class="fas fa-list-ul"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Note Editor -->
+            <div class="notepad-container">
+                <div class="editor-toolbar" id="editorToolbar">
+                    <div class="toolbar-group">
+                        <button class="toolbar-btn" data-command="bold" title="Bold">
+                            <i class="fas fa-bold"></i>
+                        </button>
+                        <button class="toolbar-btn" data-command="italic" title="Italic">
+                            <i class="fas fa-italic"></i>
+                        </button>
+                        <button class="toolbar-btn" data-command="underline" title="Underline">
+                            <i class="fas fa-underline"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="toolbar-group">
+                        <select class="font-size-select">
+                            <option value="12">12px</option>
+                            <option value="14" selected>14px</option>
+                            <option value="16">16px</option>
+                            <option value="18">18px</option>
+                            <option value="20">20px</option>
+                        </select>
+                        
+                        <select class="font-family-select">
+                            <option value="Arial, sans-serif">Arial</option>
+                            <option value="'Times New Roman', serif" selected>Times New Roman</option>
+                            <option value="'Courier New', monospace">Courier New</option>
+                            <option value="Georgia, serif">Georgia</option>
+                        </select>
+                    </div>
+                    
+                    <div class="toolbar-group">
+                        <button class="toolbar-btn" data-command="insertUnorderedList" title="Bullet List">
+                            <i class="fas fa-list-ul"></i>
+                        </button>
+                        <button class="toolbar-btn" data-command="insertOrderedList" title="Numbered List">
+                            <i class="fas fa-list-ol"></i>
+                        </button>
+                        <button class="toolbar-btn" data-command="justifyLeft" title="Align Left">
+                            <i class="fas fa-align-left"></i>
+                        </button>
+                        <button class="toolbar-btn" data-command="justifyCenter" title="Align Center">
+                            <i class="fas fa-align-center"></i>
+                        </button>
+                        <button class="toolbar-btn" data-command="justifyRight" title="Align Right">
+                            <i class="fas fa-align-right"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="toolbar-group">
+                        <button class="toolbar-btn" id="insertLinkBtn" title="Insert Link">
+                            <i class="fas fa-link"></i>
+                        </button>
+                        <button class="toolbar-btn" id="insertImageBtn" title="Insert Image">
+                            <i class="fas fa-image"></i>
+                        </button>
+                        <button class="toolbar-btn" id="insertVerseBtn" title="Insert Bible Verse">
+                            <i class="fas fa-bible"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="note-editor-container">
+                    <div class="note-meta">
+                        <div class="note-date">
+                            <i class="far fa-calendar"></i>
+                            <span id="note-created">Created: Just now</span>
+                            <span id="note-modified">Modified: Just now</span>
+                        </div>
+                        <div class="note-word-count">
+                            <span id="word-count">0 words</span>
+                            <span id="char-count">0 characters</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Rich Text Editor -->
+                    <div class="rich-text-editor" id="richTextEditor" contenteditable="true" spellcheck="true">
+                        <p>Start typing your notes here...</p>
+                        <p>You can format text, add lists, insert links, and more!</p>
+                    </div>
+                    
+                    <!-- Plain Text Editor (fallback) -->
+                    <textarea id="plainTextEditor" class="plain-text-editor" placeholder="Start typing your notes here..." spellcheck="true"></textarea>
+                </div>
+                
+                <!-- Note Tags -->
+                <div class="note-tags-container">
+                    <div class="tags-input">
+                        <label><i class="fas fa-tags"></i> Tags:</label>
+                        <input type="text" id="tags-input" placeholder="Add tags (press Enter)">
+                        <div id="tags-list" class="tags-list">
+                            <!-- Tags will be added here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bottom Actions -->
+            <div class="bottom-nav">
+                <button id="prev-note-btn" class="nav-btn-lg">
+                    <i class="fas fa-chevron-left"></i> Previous Note
+                </button>
+                <div class="center-actions">
+                    <button id="share-note-btn" class="nav-btn">
+                        <i class="fas fa-share-alt"></i> Share
+                    </button>
+                    <button id="duplicate-note-btn" class="nav-btn">
+                        <i class="fas fa-copy"></i> Duplicate
+                    </button>
+                    <button id="export-note-btn" class="nav-btn">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                </div>
+                <button id="next-note-btn" class="nav-btn-lg">
+                    Next Note <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </main>
+        
+        <!-- Footer -->
+        <footer>
+            <div class="footer-content">
+                <div class="footer-left">
+                    <span id="total-notes">0 notes</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="storage-progress"></div>
+                    </div>
+                    <span id="storage-used">0% storage used</span>
+                </div>
+                <div class="footer-right">
+                    <span id="auto-save-status">
+                        <i class="fas fa-sync-alt"></i> Auto-save: <span>Enabled</span>
+                    </span>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Insert Link Modal -->
+    <div class="modal" id="linkModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-link"></i> Insert Link</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="link-url">URL:</label>
+                    <input type="url" id="link-url" placeholder="https://example.com">
+                </div>
+                <div class="form-group">
+                    <label for="link-text">Text to display (optional):</label>
+                    <input type="text" id="link-text" placeholder="Link text">
+                </div>
+                <div class="modal-actions">
+                    <button id="insert-link-btn" class="nav-btn">Insert Link</button>
+                    <button class="nav-btn secondary close-modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Insert Verse Modal -->
+    <div class="modal" id="verseModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-bible"></i> Insert Bible Verse</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="verse-reference">Verse Reference:</label>
+                    <input type="text" id="verse-reference" placeholder="e.g., John 3:16">
+                </div>
+                <div class="form-group">
+                    <label for="verse-text">Verse Text (optional):</label>
+                    <textarea id="verse-text" placeholder="Paste verse text here..."></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button id="insert-verse-btn" class="nav-btn">Insert Verse</button>
+                    <button class="nav-btn secondary close-modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notifications -->
+    <div id="toast" class="toast"></div>
+    
+    <script src="notepad.js"></script>
+</body>
+</html>
