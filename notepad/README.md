@@ -2,7 +2,7 @@ and features
 Ska Study Notepad 📝
 A beautiful, feature-rich study notepad application designed specifically for Bible study and personal note-taking. Part of the Ska Bible Study Tools suite, this notepad helps you organize your thoughts, study notes, and spiritual reflections in one place.
 
-https://via.placeholder.com/800x450/3498db/ffffff?text=Ska+Study+Notepad
+https://skadigitalhub.github.io/bible/notepad/
 
 ✨ Features
 📝 Note Management
