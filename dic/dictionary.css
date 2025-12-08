@@ -2426,6 +2426,107 @@ footer {
     margin-top: 4px;
 }
 
+/* ===== BIBLE APP LINK STYLES ===== */
+.bible-app-link {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.bible-link-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 15px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+    border: none;
+    cursor: pointer;
+    width: 100%;
+}
+
+.bible-link-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(52, 152, 219, 0.3);
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+}
+
+.bible-link-btn:active {
+    transform: translateY(0);
+}
+
+.bible-link-btn i:first-child {
+    font-size: 1.2rem;
+    margin-right: 10px;
+}
+
+.bible-link-btn span {
+    flex: 1;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.link-icon {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.bible-link-description {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    line-height: 1.4;
+    margin: 0;
+    padding: 0 5px;
+    text-align: center;
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .bible-link-btn {
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+[data-theme="dark"] .bible-link-btn:hover {
+    box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .bible-link-btn {
+        padding: 10px 12px;
+    }
+    
+    .bible-link-btn span {
+        font-size: 0.9rem;
+    }
+    
+    .bible-link-description {
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .bible-link-btn {
+        padding: 8px 10px;
+    }
+    
+    .bible-link-btn i:first-child {
+        font-size: 1rem;
+        margin-right: 8px;
+    }
+    
+    .bible-link-btn span {
+        font-size: 0.85rem;
+    }
+    
+    .link-icon {
+        font-size: 0.8rem;
+    }
+}
+
 /* ===== PRINT STYLES ===== */
 @media print {
     .side-menu,
