@@ -1334,3 +1334,139 @@ document.addEventListener('DOMContentLoaded', () => {
     const dictionary = new BibleDictionary();
     window.bibleDictionary = dictionary;
 });
+
+// Theme Manager for Bible Dictionary
+  // Theme Manager for Bible Dictionary
+          
+// ===== DARK/LIGHT MODE =====
+function toggleMode() {
+    const body = document.body;
+    const toggleButton = document.querySelector('#mode');
+    
+    // If other themes are ON, turn them OFF first
+    if (body.classList.contains('high-contrast')) {
+        body.classList.remove('high-contrast');
+        document.querySelector('#ConstrastBtn')?.classList.remove('dark');
+        localStorage.setItem('contrastMode', 'disabled');
+    }
+    if (body.classList.contains('sepia-mode')) {
+        body.classList.remove('sepia-mode');
+        document.querySelector('#sepiaBtn')?.classList.remove('light');
+        localStorage.setItem('sepia-mode', 'disabled');
+    }
+    
+    // Now toggle light/dark mode
+    body.classList.toggle('light-mode');
+    
+    if (body.classList.contains('light-mode')) {
+        toggleButton.classList.add('dark');
+        localStorage.setItem('lightMode', 'enabled');
+    } else {
+        toggleButton.classList.remove('dark');
+        localStorage.setItem('lightMode', 'disabled');
+    }
+}
+
+// Check saved preference for light mode
+const lightToggleBtn = document.querySelector('#mode');
+if (lightToggleBtn && localStorage.getItem('lightMode') === 'enabled') {
+    // Make sure other themes are OFF
+    document.body.classList.remove('high-contrast', 'sepia-mode');
+    document.querySelector('#ConstrastBtn')?.classList.remove('dark');
+    document.querySelector('#sepiaBtn')?.classList.remove('light');
+    localStorage.setItem('contrastMode', 'disabled');
+    localStorage.setItem('sepia-mode', 'disabled');
+    
+    document.body.classList.add('light-mode');
+    lightToggleBtn.classList.add('dark');
+}
+
+// ===== HIGH CONTRAST MODE =====
+function contrastBtn() {
+    const body = document.body;
+    const toggleButton = document.querySelector('#ConstrastBtn');
+    
+    // If other themes are ON, turn them OFF first
+    if (body.classList.contains('light-mode')) {
+        body.classList.remove('light-mode');
+        document.querySelector('#mode')?.classList.remove('dark');
+        localStorage.setItem('lightMode', 'disabled');
+    }
+    if (body.classList.contains('sepia-mode')) {
+        body.classList.remove('sepia-mode');
+        document.querySelector('#sepiaBtn')?.classList.remove('light');
+        localStorage.setItem('sepia-mode', 'disabled');
+    }
+    
+    // Toggle high-contrast mode
+    body.classList.toggle('high-contrast');
+    
+    if (body.classList.contains('high-contrast')) {
+        toggleButton.classList.add('dark');
+        localStorage.setItem('contrastMode', 'enabled');
+    } else {
+        // When turning OFF high-contrast, return to DEFAULT
+        toggleButton.classList.remove('dark');
+        localStorage.setItem('contrastMode', 'disabled');
+        // All themes are now OFF = dark mode (default)
+    }
+}
+
+// Check saved preference for contrast mode
+const contrastToggleBtn = document.querySelector('#ConstrastBtn');
+if (contrastToggleBtn && localStorage.getItem('contrastMode') === 'enabled') {
+    // Make sure other themes are OFF
+    document.body.classList.remove('light-mode', 'sepia-mode');
+    document.querySelector('#mode')?.classList.remove('dark');
+    document.querySelector('#sepiaBtn')?.classList.remove('light');
+    localStorage.setItem('lightMode', 'disabled');
+    localStorage.setItem('sepia-mode', 'disabled');
+    
+    document.body.classList.add('high-contrast');
+    contrastToggleBtn.classList.add('dark');
+}
+
+// ===== SEPIA MODE =====
+function sepiaBtn() {
+    const body = document.body;
+    const toggleButton = document.querySelector('#sepiaBtn');
+    
+    // If other themes are ON, turn them OFF first
+    if (body.classList.contains('light-mode')) {
+        body.classList.remove('light-mode');
+        document.querySelector('#mode')?.classList.remove('dark');
+        localStorage.setItem('lightMode', 'disabled');
+    }
+    if (body.classList.contains('high-contrast')) {
+        body.classList.remove('high-contrast');
+        document.querySelector('#ConstrastBtn')?.classList.remove('dark');
+        localStorage.setItem('contrastMode', 'disabled');
+    }
+    
+    // Toggle sepia mode
+    body.classList.toggle('sepia-mode');
+    
+    if (body.classList.contains('sepia-mode')) {
+        toggleButton.classList.add('light');
+        localStorage.setItem('sepia-mode', 'enabled');
+    } else {
+        // When turning OFF sepia, return to DEFAULT
+        toggleButton.classList.remove('light');
+        localStorage.setItem('sepia-mode', 'disabled');
+        // All themes are now OFF = dark mode (default)
+    }
+}
+
+// Check saved preference for sepia mode
+const sepiaToggleBtn = document.querySelector('#sepiaBtn');
+if (sepiaToggleBtn && localStorage.getItem('sepia-mode') === 'enabled') {
+    // Make sure other themes are OFF
+    document.body.classList.remove('light-mode', 'high-contrast');
+    document.querySelector('#mode')?.classList.remove('dark');
+    document.querySelector('#ConstrastBtn')?.classList.remove('dark');
+    localStorage.setItem('lightMode', 'disabled');
+    localStorage.setItem('contrastMode', 'disabled');
+    
+    document.body.classList.add('sepia-mode');
+    sepiaToggleBtn.classList.add('light');
+}
