@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" maximum-scale="1.0">
     <title>Ska Bible Dictionary</title>
     <link rel="stylesheet" href="dictionary.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -101,7 +101,40 @@
                 <p class="empty-state">No favorite terms yet</p>
             </div>
         </div>
-        <br>
+        <div class="menu-section">
+            <h4><i class="fas fa-cog"></i> Settings</h4>
+            <div class="settings-options">
+                <label class="switch">
+                    <input type="checkbox" id="mode" onclick="toggleMode()">
+                    <span class="slider"></span>
+                    <span class="label-text">Mode</span>
+                </label>
+                <label class="switch">
+                    <input type="checkbox" id="ConstrastBtn" onclick="contrastBtn()">
+                    <span class="slider"></span>
+                    <span class="label-text">Constrast</span>
+                </label>
+                <label class="switch">
+                    <input type="checkbox" id="sepiaBtn" checked onclick="sepiaBtn()">
+                    <span class="slider"></span>
+                    <span class="label-text">Sepia</span>
+                </label>
+            </div>
+        </div>
+        <div class="menu-section">
+            <div class="header-right">
+                <br>
+                <button class="header-btn" title="Download" onclick="window.location.href('https://skadigitalhub.github.io/SkaApps')">
+                    <i class="fas fa-cart-arrow-down"></i>
+                </button>
+                <button class="header-btn" id="viewFavoritesBtn" title="View Favorites">
+                    <i class="far fa-star"></i>
+                </button>
+                <button class="header-btn" id="clearHistoryBtn" title="Clear Search History">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
     </div>
     
     <!-- Overlay for mobile menu -->
@@ -124,17 +157,7 @@
                 </div>
             </div>
             
-            <div class="header-right">
-                <button class="header-btn" id="themeToggle" title="Toggle Theme">
-                    <i class="fas fa-moon"></i>
-                </button>
-                <button class="header-btn" id="clearHistoryBtn" title="Clear Search History">
-                    <i class="fas fa-trash"></i>
-                </button>
-                <button class="header-btn" id="viewFavoritesBtn" title="View Favorites">
-                    <i class="far fa-star"></i>
-                </button>
-            </div>
+            
             <!-- Language Stats -->
             <div class="language-stats">
                 <span class="hebrew-stat" id="hebrew-count">0</span> Hebrew • 
@@ -270,7 +293,3 @@
     <script src="dictionary.js"></script>
 </body>
 </html>
-
-
-
-
