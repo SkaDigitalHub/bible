@@ -50,6 +50,26 @@ body {
     transition: background 0.3s, color 0.3s;
 }
 
+/* ===== CUSTOM SCROLLBAR ===== */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--text-light);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
 /* ===== SIDE MENU ===== */
 .side-menu {
     position: fixed;
@@ -932,7 +952,7 @@ header {
     border-radius: 10px;
     width: 90%;
     max-width: 500px;
-    max-height: 80vh;
+    max-height: auto;
     overflow: hidden;
     animation: modalSlide 0.3s ease;
 }
