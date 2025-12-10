@@ -5,7 +5,39 @@
     box-sizing: border-box;
 }
 
+
+/* NEW: Dark theme as default */
 :root {
+    /* Dark Theme Variables */
+    --primary-color: #5dade2;
+    --secondary-color: #34495e;
+    --accent-color: #e74c3c;
+    --success-color: #2ecc71;
+    --warning-color: #f1c40f;
+    --info-color: #9b59b6;
+    
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --text-light: #b0b0b0;
+    --card-bg: #1e1e1e;
+    --border-color: #333;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    --hover-bg: #2d2d2d;
+    
+    --sidebar-width: 320px;
+    --header-height: 70px;
+    --footer-height: 60px;
+    
+    /* Z-index scale */
+    --z-sidebar: 1000;
+    --z-overlay: 999;
+    --z-modal: 1100;
+    --z-toast: 1200;
+    --z-header: 100;
+    --z-alphabet: 10;
+}
+
+.light-mode {
     /* Light Theme Variables */
     --primary-color: #3498db;
     --secondary-color: #2c3e50;
@@ -21,18 +53,6 @@
     --border-color: #e9ecef;
     --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     --hover-bg: #f0f2f5;
-    
-    --sidebar-width: 320px;
-    --header-height: 70px;
-    --footer-height: 60px;
-    
-    /* Z-index scale */
-    --z-sidebar: 1000;
-    --z-overlay: 999;
-    --z-modal: 1100;
-    --z-toast: 1200;
-    --z-header: 100;
-    --z-alphabet: 10;
 }
 
 [data-theme="dark"] {
@@ -52,7 +72,7 @@
     --hover-bg: #2d2d2d;
 }
 
-[data-theme="sepia"] {
+.sepia-mode {
     --bg-color: #fbf0d9;
     --text-color: #5f4b32;
     --text-light: #8c7853;
@@ -61,7 +81,7 @@
     --hover-bg: #ede0c8;
 }
 
-[data-theme="high-contrast"] {
+.high-contrast {
     --bg-color: #000000;
     --text-color: #ffffff;
     --text-light: #cccccc;
@@ -136,7 +156,7 @@ input:focus-visible {
     left: 0;
     top: 0;
     width: var(--sidebar-width);
-    height: 100vh;
+    height: 100%;
     background: var(--card-bg);
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
     transform: translateX(-100%);
@@ -150,6 +170,8 @@ input:focus-visible {
 .side-menu.active {
     transform: translateX(0);
 }
+
+
 
 .menu-header {
     padding: 20px;
@@ -2735,19 +2757,5 @@ footer {
         animation: none;
         border: 4px solid var(--border-color);
         border-top-color: var(--primary-color);
-    }
-}
-
-/* Dark mode auto-detection */
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme]) {
-        --primary-color: #5dade2;
-        --secondary-color: #34495e;
-        --bg-color: #121212;
-        --text-color: #e0e0e0;
-        --text-light: #b0b0b0;
-        --card-bg: #1e1e1e;
-        --border-color: #333;
-        --hover-bg: #2d2d2d;
     }
 }
