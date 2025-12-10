@@ -1,4 +1,4 @@
-/* notepad.css - Enhanced Study Notepad Styles */
+/* Enhanced Study Notepad Styles */
 :root {
     --primary-color: #3498db;
     --primary-light: #5dade2;
@@ -4659,3 +4659,4 @@ footer {
         perspective: 1000;
     }
 }
+
