@@ -47,6 +47,7 @@ class BibleApp {
             'gn': '/bible/versions/gn.json',
             'asv': '/bible/versions/asv.json',
             'ara': '/bible/versions/aramaic.json',
+            'nkjv': '/bible/versions/nkjv.json',
             
         };
         
@@ -61,6 +62,7 @@ class BibleApp {
             'gn': 'GNT - GoodNews Bible',
             'asv': 'ASV - America Standard Version',
             'ara': 'ARA - Aramaic Version',
+            'nkjv': 'NKJV - New King James Version',
         };
         
         // Initialize
