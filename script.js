@@ -43,9 +43,10 @@ class BibleApp {
             'amp': '/bible/versions/amp.json',
             'nlt': '/bible/versions/nlt.json',
             'niv': '/bible/versions/niv.json',
-            'msg': 'bible/versions/msg.json',
+            'msg': '/bible/versions/msg.json',
             'gn': '/bible/versions/gn.json',
             'asv': '/bible/versions/asv.json',
+            'ara': '/bible/versions/aramaic.json',
             
         };
         
@@ -56,8 +57,10 @@ class BibleApp {
             'amp': 'AMP - Amplified Bible',
             'nlt': 'NLT - New Living Translation',
             'niv': 'NIV - New International Version',
-            'asv': 'ASV - America Standard Version',
+            'msg': 'MSG - Message Bible',
             'gn': 'GNT - GoodNews Bible',
+            'asv': 'ASV - America Standard Version',
+            'ara': 'ARA - Aramaic Version',
         };
         
         // Initialize
